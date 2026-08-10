@@ -47,7 +47,7 @@ Workaround for continuing to test a page that is dead this way: copy the file, r
 - Typing `localhost:8811/Al-Mujtaba_HR_Attendance_System.html` in the omnibox can get mangled (underscore dropped) → 404. Navigate via the sidebar link "📊 التقارير والرفع" instead.
 - Employee detail: employees.html → search box → 🔍 بحث → click the row. Overtime card is "⏱️ احتساب الدوام الإضافي" on the ملخص tab.
 - Overtime rules live in employees.html: `MAX_DAILY_HOURS=12`, `DUTY_QUOTA_12HR=17`, payout = round(otHours/8 * salary/30), payout only for `12hr` shift employees with a basic salary.
-- Note: on the workspace (hr_workspace) render path the OT hours come straight from the attendance snapshot and are NOT recomputed with the 17-shift quota rule; only the DB/`daily_attendance` path applies the local formula. Expect apparent contradictions (e.g. "duty shifts 0" but 22.5 OT hours).
+- Both render paths (`renderSummaryFromWs` for the hr_workspace snapshot and `renderSummary` for `daily_attendance`) apply the quota rule for `12hr` employees: OT = `max(0, dutyShifts - 17) * 12`. Non-12hr employees use the snapshot's per-day `overtimeHours`. Real snapshots rarely have anyone over quota, so OT of 0 for a 12hr employee is usually correct.
 - Salary is rarely set in Supabase; to exercise the payout branch without writing to the production DB, set `currentEmp.basic_salary = <n>` in the console and click the "عرض" button (the button click is a real UI action that re-renders).
 - Attendance app language toggle is the EN / AR pair at the top-right of the header; the Duty Carryover modal is opened from "🔄 Duty Carryover" on tab "4. Department Report".
 
