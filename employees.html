@@ -954,7 +954,8 @@ function attWorkedDays(att){
   return (att||[])
     .filter(a => a.status === 'present')
     .sort((a,b) => String(a.att_date).localeCompare(String(b.att_date)))
-    .map(a => ({ dayNum:+String(a.att_date).slice(-2), code:a.shift_code, workedMin:a.worked_minutes||0 }));
+    .map(a => ({ dayNum:+String(a.att_date).slice(-2), code:a.shift_code,
+                 workedMin:a.worked_minutes||0, inAt:a.clock_in||null, outAt:a.clock_out||null }));
 }
 
 // Worked days of a workspace result, oldest first, in the shape the OT tab wants.
@@ -962,7 +963,8 @@ function wsWorkedDays(r){
   return (Array.isArray(r.days) ? r.days : [])
     .filter(d => d && (d.workedHours||0) > 0)
     .sort((a,b) => (a.day||0) - (b.day||0))
-    .map(d => ({ dayNum:d.day, code:d.code, workedMin:Math.round((d.workedHours||0)*60) }));
+    .map(d => ({ dayNum:d.day, code:d.code, workedMin:Math.round((d.workedHours||0)*60),
+                 inAt:d.firstPunch||null, outAt:d.lastPunch||null }));
 }
 
 function renderOvertimeFromWs(r, month, year){
@@ -997,6 +999,13 @@ function otRowsFor(days, shiftType){
   return { rows, dutyCount: days.length, otMin: rows.reduce((s,r)=>s+r.otMin, 0) };
 }
 
+// Punch timestamp -> HH:MM, or a dash when the punch is missing.
+function otClock(ts){
+  if (!ts) return '—';
+  const d = new Date(ts);
+  return isNaN(d) ? '—' : d.toLocaleTimeString('ar', { hour:'2-digit', minute:'2-digit' });
+}
+
 function renderOvertimeTab(days, shiftType, month, year){
   const el = document.getElementById('tab-overtime');
   const salary = currentEmp?.basic_salary || 0;
@@ -1011,16 +1020,18 @@ function renderOvertimeTab(days, shiftType, month, year){
         <div class="card-title">⏱️ تفاصيل الدوام الإضافي — ${MONTHS[month-1]} ${year}</div>
       </div>
       ${otRows.length ? `<div class="table-wrap"><table>
-        <thead><tr><th>اليوم</th><th>الكود</th><th>ساعات العمل</th><th>الإضافي</th><th>ملاحظة</th></tr></thead>
+        <thead><tr><th>التاريخ</th><th>الكود</th><th>الدخول</th><th>الخروج</th><th>ساعات العمل</th><th>الإضافي</th><th>ملاحظة</th></tr></thead>
         <tbody>${otRows.map(r => `<tr>
-          <td style="font-weight:700">${new Date(year, month-1, r.dayNum).toLocaleDateString('ar-IQ',{weekday:'short',day:'numeric',month:'short'})}</td>
+          <td style="font-weight:700">${new Date(year, month-1, r.dayNum).toLocaleDateString('ar-IQ',{weekday:'short',year:'numeric',month:'short',day:'numeric'})}</td>
           <td style="font-family:monospace;color:#8C1320;font-size:.76rem">${r.code||'—'}</td>
+          <td>${otClock(r.inAt)}</td>
+          <td>${otClock(r.outAt)}</td>
           <td>${mHHMM(r.workedMin)}</td>
           <td style="font-weight:800;color:#8C1320">${mHHMM(r.otMin)}</td>
           <td style="color:#9C7078;font-size:.76rem">${r.note||'—'}</td>
         </tr>`).join('')}</tbody>
         <tfoot><tr>
-          <td colspan="3" style="font-weight:800;text-align:left">الإجمالي</td>
+          <td colspan="5" style="font-weight:800;text-align:left">الإجمالي</td>
           <td style="font-weight:800;color:#8C1320">${mHHMM(otMin)}</td><td></td>
         </tr></tfoot>
       </table></div>`

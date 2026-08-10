@@ -1,6 +1,6 @@
 ---
 name: testing-hr-pages
-description: How to run and test the Al-Mujtaba HR Arabic RTL static HTML pages (index/departments/employees/exceptions/unscheduled-overtime/Al-Mujtaba_HR_Attendance_System) locally, including the top JS pitfall that silently kills a whole page.
+description: How to run and test the Al-Mujtaba HR Arabic RTL static HTML pages (index/departments/employees/exceptions/Al-Mujtaba_HR_Attendance_System) locally, including the top JS pitfall that silently kills a whole page.
 ---
 
 # Testing the Al-Mujtaba HR static pages
@@ -47,9 +47,16 @@ Workaround for continuing to test a page that is dead this way: copy the file, r
 - Typing `localhost:8811/Al-Mujtaba_HR_Attendance_System.html` in the omnibox can get mangled (underscore dropped) → 404. Navigate via the sidebar link "📊 التقارير والرفع" instead.
 - Employee detail: employees.html → search box → 🔍 بحث → click the row. Overtime card is "⏱️ احتساب الدوام الإضافي" on the ملخص tab.
 - Overtime rules live in employees.html: `MAX_DAILY_HOURS=12`, `DUTY_QUOTA_12HR=17`, payout = round(otHours/8 * salary/30), payout only for `12hr` shift employees with a basic salary.
-- OT for both render paths (`renderSummaryFromWs` for the hr_workspace snapshot, `renderSummary` for `daily_attendance`) goes through the shared `otRowsFor(days, shiftType, dutyCount)`, which also feeds the ⏱️ الدوام الإضافي tab. `12hr`: OT = `max(0, dutyCount - 17) * 12`; everything else: per-day `max(0, min(worked, 12h) - baseShiftHours)`.
-- **Watch for the two different 12hr counters.** `otRowsFor` builds its per-day rows by numbering the *worked-day records* (`wsWorkedDays`/`attWorkedDays`, i.e. any day with hours > 0) and flags index > 17, but computes the returned total from `totals.duty12hCount`. Those two numbers disagree in real snapshot data (e.g. employee 2163: 20 worked days but `duty12hCount` 3), which makes the OT tab's rows and its total row contradict each other. When testing 12hr OT, always cross-check `days.filter(d=>d.workedHours>0).length` against `totals.duty12hCount` in the console before trusting either number.
-- Real snapshots rarely have anyone over quota, so OT of 0 for a 12hr employee is usually correct. To force the over-quota branch consistently, set **both** `currentEmp._wsResult.totals.duty12hCount` and pick an employee whose worked-day count equals the value you set.
+- OT for both render paths (`renderSummaryFromWs` for the hr_workspace snapshot, `renderSummary` for `daily_attendance`) goes through the shared `otRowsFor(days, shiftType)`, which also feeds the ⏱️ الدوام الإضافي tab (the 7th tab, between 🕐 الحضور and 🌴 الإجازات). `12hr`: each worked-day record is one duty shift and every shift past #17 counts as 12h OT; everything else: per-day `max(0, min(worked, 12h) - baseShiftHours)`.
+- `otRowsFor` returns `{rows, otMin, dutyCount}` where the 12hr duty count is derived from the worked-day records (`days.length`), and `otMin` is summed from the flagged rows — so the rows, the total row, the card and the KPI are all driven by one number. The snapshot's own `totals.duty12hCount` is deliberately **not** used for OT; a regression here shows up as the tab's rows and its total row disagreeing (this was a real bug: employee 2163 once rendered three 12:00 rows under a 0:00 total).
+- Good invariant to sweep in the console after touching OT code — it caught the bug above and should always print 0 mismatches:
+  ```js
+  allEmployees.filter(e=>e._wsResult).filter(e=>{
+    const r=e._wsResult, o=otRowsFor(wsWorkedDays(r), detectShiftTypeFromResult(r));
+    return o.rows.reduce((s,x)=>s+x.otMin,0)!==o.otMin;
+  }).map(e=>e.employee_id)
+  ```
+- Real 12hr subjects in the July 2026 snapshot: 2084 = 15 worked days (under-quota empty state), 2163 = 20 (rows 18–20, 36:00), 1525 = 21 (rows 18–21, 48:00). 8hr subjects: 2047 = 14:42 total, 1126 = 41:27 with ten 12h-cap days.
 - Handy console probes against the loaded `allEmployees` array: find days over the 12h cap with `allEmployees.filter(e=>(e._wsResult?.days||[]).some(d=>d.workedHours>12))` (employee 1126 is a good 8hr cap case), and list 12hr duty/worked counts to pick test subjects.
 - Salary is rarely set in Supabase; to exercise the payout branch without writing to the production DB, set `currentEmp.basic_salary = <n>` in the console and click the "عرض" button (the button click is a real UI action that re-renders).
 - Attendance app language toggle is the EN / AR pair at the top-right of the header; the Duty Carryover modal is opened from "🔄 Duty Carryover" on tab "4. Department Report".
