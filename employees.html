@@ -661,12 +661,7 @@ async function loadMonthData(){
     renderSummary(shifts||[],attendance||[],leaves||[],violations||[],month,year);
     renderScheduleTab(shifts||[],leaves||[],month,year);
     renderAttTab(attendance||[],leaves||[]);
-    renderOvertimeTab(
-      attWorkedDays(attendance||[]),
-      currentEmp.shift_type||'8hr',
-      (attendance||[]).filter(a=>a.status==='present').length,
-      month, year
-    );
+    renderOvertimeTab(attWorkedDays(attendance||[]), currentEmp.shift_type||'8hr', month, year);
   }
 
   renderLeavesTab(leaves||[]);
@@ -732,8 +727,9 @@ function renderSummaryFromWs(r, violations, month, year){
 
   // OT is derived from the day records with the hospital's own rules (quota for
   // 12hr, base+12h cap otherwise) so this KPI matches the الدوام الإضافي tab.
-  const dutyCount = t.duty12hCount || 0;
-  const otH = otRowsFor(wsWorkedDays(r), shiftType, dutyCount).otMin / 60;
+  const ot = otRowsFor(wsWorkedDays(r), shiftType);
+  const dutyCount = ot.dutyCount;
+  const otH = ot.otMin / 60;
 
   // OT payout — cash instead of time off, 12hr shift employees only
   const salary = currentEmp?.basic_salary || 0;
@@ -781,7 +777,7 @@ function renderSummaryFromWs(r, violations, month, year){
       </div>`:''}
       ${shiftType==='12hr'?`
       <div class="kpi-box">
-        <div class="kpi-val">${t.duty12hCount??0}</div>
+        <div class="kpi-val">${dutyCount}</div>
         <div class="kpi-lbl">شيفتات الدوام (كوتا ${DUTY_QUOTA_12HR})</div>
       </div>`:''}
       <div class="kpi-box">
@@ -970,31 +966,27 @@ function wsWorkedDays(r){
 }
 
 function renderOvertimeFromWs(r, month, year){
-  renderOvertimeTab(
-    wsWorkedDays(r),
-    detectShiftTypeFromResult(r),
-    r.totals?.duty12hCount || 0,
-    month, year
-  );
+  renderOvertimeTab(wsWorkedDays(r), detectShiftTypeFromResult(r), month, year);
 }
 
 /* ---- OVERTIME TAB ----
    days: [{dayNum, code, workedMin}] already filtered to worked days.
-   Returns the per-day rows so callers can reuse the same totals. */
-function otRowsFor(days, shiftType, dutyCount){
+   The day records are the single source of truth: for 12hr employees each worked
+   day is one duty shift, so the rows, the total and the duty count all come from
+   the same sequence and can never disagree. */
+function otRowsFor(days, shiftType){
   const base = baseShiftHours(shiftType) * 60;
   const cap  = MAX_DAILY_HOURS * 60;
 
   if (shiftType === '12hr'){
     // Every duty shift counts; the ones past the quota are the overtime ones.
-    let n = 0;
-    const rows = days.map(d => {
-      n++;
+    const rows = days.map((d, i) => {
+      const n = i + 1;
       const isOt = n > DUTY_QUOTA_12HR;
       return { ...d, otMin: isOt ? 12*60 : 0,
                note:`المناوبة رقم ${n}${isOt?' — بعد الكوتا':''}` };
     });
-    return { rows, otMin: Math.max(0, dutyCount - DUTY_QUOTA_12HR) * 12 * 60 };
+    return { rows, dutyCount: days.length, otMin: rows.reduce((s,r)=>s+r.otMin, 0) };
   }
 
   const rows = days.map(d => {
@@ -1002,14 +994,14 @@ function otRowsFor(days, shiftType, dutyCount){
     return { ...d, otMin: ot,
              note:(d.workedMin||0) > cap ? `تجاوز حد ${MAX_DAILY_HOURS} ساعة — احتُسب ${MAX_DAILY_HOURS} فقط` : '' };
   });
-  return { rows, otMin: rows.reduce((s,r)=>s+r.otMin, 0) };
+  return { rows, dutyCount: days.length, otMin: rows.reduce((s,r)=>s+r.otMin, 0) };
 }
 
-function renderOvertimeTab(days, shiftType, dutyCount, month, year){
+function renderOvertimeTab(days, shiftType, month, year){
   const el = document.getElementById('tab-overtime');
   const salary = currentEmp?.basic_salary || 0;
   const is12   = shiftType === '12hr';
-  const { rows, otMin } = otRowsFor(days, shiftType, dutyCount);
+  const { rows, otMin, dutyCount } = otRowsFor(days, shiftType);
   const otRows = rows.filter(r => r.otMin > 0);
 
   el.innerHTML = `
@@ -1051,7 +1043,7 @@ function renderSummary(shifts,att,leaves,viols,month,year){
     if(a.status==='leave'){leaveDays++;workedMin+=(st==='12hr'?12:st==='7hr'?7:8)*60;}
   });
   if(!att.length)leaveDays=leaves.reduce((s,l)=>s+(l.total_days||0),0);
-  const otMin=otRowsFor(attWorkedDays(att), st, dutyCount).otMin;
+  const otMin=otRowsFor(attWorkedDays(att), st).otMin;
   const salary=currentEmp.basic_salary||0;
   const otPay=st==='12hr'?otPayout(otMin/60,salary):0;
   document.getElementById('tab-summary').innerHTML=`
