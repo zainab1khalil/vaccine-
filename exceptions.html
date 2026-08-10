@@ -457,17 +457,8 @@ function getMonth() { return +document.getElementById('glob-month').value; }
 function getYear()  { return +document.getElementById('glob-year').value; }
 function monthLabel() { return `${MONTHS[getMonth()-1]} ${getYear()}`; }
 
-function toast(msg, type='success') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = `toast toast-${type} on`;
-  setTimeout(() => t.classList.remove('on'), 2800);
-}
-
-function fDate(s) {
-  if (!s) return '—';
-  return new Date(s).toLocaleDateString('ar-IQ', {year:'numeric',month:'short',day:'numeric'});
-}
+// toast() and fDate() come from supabase.js — redeclaring them here would
+// clash with its top-level bindings and kill this whole script at parse time.
 
 // ── init ──────────────────────────────────────────────────────────
 // Set current month/year

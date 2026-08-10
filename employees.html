@@ -721,8 +721,14 @@ function renderSummaryFromWs(r, violations, month, year){
   const emp = r.employee || {};
   const shiftType = detectShiftTypeFromResult(r);
 
+  // 12hr employees earn OT per duty shift beyond the monthly quota, not from the
+  // snapshot's per-day overtimeHours (which follows the 7/8h rule).
+  const dutyCount = t.duty12hCount || 0;
+  const otH = shiftType === '12hr'
+    ? Math.max(0, dutyCount - DUTY_QUOTA_12HR) * 12
+    : (t.overtimeHours || 0);
+
   // OT payout — cash instead of time off, 12hr shift employees only
-  const otH = t.overtimeHours || 0;
   const salary = currentEmp?.basic_salary || 0;
   const otPay = shiftType === '12hr' ? otPayout(otH, salary) : 0;
 
@@ -781,7 +787,7 @@ function renderSummaryFromWs(r, violations, month, year){
       </div>
     </div>
 
-    ${otBreakdown(shiftType, otH, t.duty12hCount||0, salary)}
+    ${otBreakdown(shiftType, otH, dutyCount, salary)}
 
     ${(t.lateMinutes||0)>0?`
     <div class="card" style="margin-bottom:.85rem">

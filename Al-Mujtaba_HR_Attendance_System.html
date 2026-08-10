@@ -3075,6 +3075,7 @@
       btnDutyCarryover:'Duty Carryover',
       excModalTitle:'🔄 Duty Carryover',
       excModalDesc:'Carry over surplus duty shifts from last month so they reduce this month\'s quota. Shift exceptions are managed on the Exceptions page.',
+      carryEmpty:'No carryover yet. If an employee worked more shifts than their quota last month, record the surplus here.',
       excPaneDutyDesc:'If an employee did more duty shifts last month than the quota, the surplus reduces this month\'s quota. E.g. quota=17, last month=20 → surplus=3 → this month effective quota=14.',
       excCarryoverAddTitle:'Add Carryover from Last Month', excSurplusPh:'Surplus shifts',
       selectEmpOpt:'— Select Employee —', btnAdd:'Add',
@@ -3190,6 +3191,7 @@
       btnDutyCarryover:'فائض المناوبات',
       excModalTitle:'🔄 فائض المناوبات',
       excModalDesc:'نقل فائض المناوبات من الشهر الماضي لتقليل حصة هذا الشهر. تُدار استثناءات الوردية في صفحة الاستثناءات.',
+      carryEmpty:'لا يوجد فائض. إذا عمل موظف مناوبات أكثر من الحصة الشهر الماضي، سجّل الفائض هنا.',
       excPaneDutyDesc:'إذا عمل موظف مناوبات أكثر من الحصة الشهر الماضي، الفائض يُقلّل حصة هذا الشهر. مثال: الحصة 17، الشهر الماضي 20 → فائض 3 → الحصة الفعلية هذا الشهر 14.',
       excCarryoverAddTitle:'إضافة فائض من الشهر الماضي', excSurplusPh:'عدد المناوبات الزائدة',
       selectEmpOpt:'— اختر الموظف —', btnAdd:'إضافة',
@@ -3596,7 +3598,7 @@
     const emp = state.merged ? state.merged.employees : [];
     const entries = Object.entries(state.dutyCarryover).filter(([,v]) => v > 0);
     if (!entries.length) {
-      list.innerHTML = '<div class="exc-empty">لا يوجد فائض. إذا عمل موظف مناوبات أكثر من الحصة الشهر الماضي، سجّل الفائض هنا.</div>';
+      list.innerHTML = `<div class="exc-empty" data-i18n="carryEmpty">${t('carryEmpty')}</div>`;
       return;
     }
     list.innerHTML = entries.map(([id, surplus]) => {

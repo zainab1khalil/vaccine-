@@ -330,8 +330,8 @@ tbody td{padding:.55rem .8rem;color:#5C3840;vertical-align:middle}
 // =============================================
 // STATE
 // =============================================
-const MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو',
-                   'يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+// MONTHS_AR comes from supabase.js — redeclaring it here would clash with its
+// top-level binding and kill this whole script at parse time.
 
 let allEmployees  = [];
 let selectedEmp   = null;
