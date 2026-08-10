@@ -124,4 +124,22 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | HR Attendance Rules
+    |--------------------------------------------------------------------------
+    */
+
+    // Monthly hours used for residents / specialists without a signed contract.
+    'resident_default_hours' => (float) env('HR_RESIDENT_DEFAULT_HOURS', 160),
+
+    // Chemo / IV-mixing departments work a 7-hour shift whatever the schedule says.
+    'chemo_shift_hours' => (float) env('HR_CHEMO_SHIFT_HOURS', 7),
+
+    // Department names (substring match, case-insensitive) treated as chemo / mixing.
+    'chemo_department_keywords' => ['كيمياء', 'مزج', 'chemo', 'mixing', 'iv mix'],
+
+    // Monthly days an employee doing chemo mixing duty is reduced to.
+    'chemo_duty_reduced_days' => (int) env('HR_CHEMO_DUTY_REDUCED_DAYS', 23),
+
 ];

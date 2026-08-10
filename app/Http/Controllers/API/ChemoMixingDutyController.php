@@ -67,7 +67,7 @@ class ChemoMixingDutyController extends Controller
             [
                 'home_department_id'  => $validated['home_department_id'],
                 'chemo_department_id' => $validated['chemo_department_id'] ?? null,
-                'reduced_days'        => 23,
+                'reduced_days'        => (int) config('app.chemo_duty_reduced_days', 23),
                 'original_days'       => $validated['original_days'] ?? null,
                 'notes'               => $validated['notes'] ?? null,
                 'confirmed'           => false,
@@ -101,15 +101,18 @@ class ChemoMixingDutyController extends Controller
             )->count();
 
             if ($workingDays <= $threshold && $workingDays > 0) {
-                // This employee has reduced days — flag as chemo duty
+                // This employee has reduced days — flag as chemo duty.
+                // Chemo mixing duty always reduces the month to the fixed quota (23 days),
+                // the scheduled day count is only what triggered the detection.
                 $duty = ChemoMixingDuty::updateOrCreate(
                     ['employee_id' => $empId, 'month' => $month, 'year' => $year],
                     [
                         'home_department_id' => $depId,
-                        'reduced_days'       => $workingDays,
+                        'reduced_days'       => (int) config('app.chemo_duty_reduced_days', 23),
                         'original_days'      => 26, // standard expected
                         'confirmed'          => false,
                         'email_sent'         => false,
+                        'notes'              => "اكتشاف تلقائي — الأيام المجدولة في ملف الإكسل: {$workingDays}",
                     ]
                 );
                 $emp = Employee::where('employee_id', $empId)->first();
