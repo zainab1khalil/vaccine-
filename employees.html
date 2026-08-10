@@ -297,6 +297,7 @@ tbody td{padding:.58rem .8rem;color:#5C3840;vertical-align:middle;white-space:no
           <button class="tab-btn active" data-tab="summary">📋 ملخص</button>
           <button class="tab-btn" data-tab="schedule">📅 الجدول</button>
           <button class="tab-btn" data-tab="attendance">🕐 الحضور</button>
+          <button class="tab-btn" data-tab="overtime">⏱️ الدوام الإضافي</button>
           <button class="tab-btn" data-tab="leaves">🌴 الإجازات</button>
           <button class="tab-btn" data-tab="violations">⚖️ المخالفات</button>
           <button class="tab-btn" data-tab="disciplinary">📋 التأديبية</button>
@@ -305,6 +306,7 @@ tbody td{padding:.58rem .8rem;color:#5C3840;vertical-align:middle;white-space:no
         <div id="tab-summary"      class="tab-panel active"></div>
         <div id="tab-schedule"     class="tab-panel"></div>
         <div id="tab-attendance"   class="tab-panel"></div>
+        <div id="tab-overtime"     class="tab-panel"></div>
         <div id="tab-leaves"       class="tab-panel"></div>
         <div id="tab-violations"   class="tab-panel"></div>
         <div id="tab-disciplinary" class="tab-panel"></div>
@@ -653,11 +655,18 @@ async function loadMonthData(){
     renderSummaryFromWs(wsResult, violations||[], month, year);
     renderScheduleFromWs(wsResult, month, year);
     renderAttFromWs(wsResult);
+    renderOvertimeFromWs(wsResult, month, year);
   } else {
     src.textContent=(attendance&&attendance.length)?'✅ بيانات موجودة':'💡 افتح نظام الحضور لرفع البصمات';
     renderSummary(shifts||[],attendance||[],leaves||[],violations||[],month,year);
     renderScheduleTab(shifts||[],leaves||[],month,year);
     renderAttTab(attendance||[],leaves||[]);
+    renderOvertimeTab(
+      attWorkedDays(attendance||[]),
+      currentEmp.shift_type||'8hr',
+      (attendance||[]).filter(a=>a.status==='present').length,
+      month, year
+    );
   }
 
   renderLeavesTab(leaves||[]);
@@ -721,12 +730,10 @@ function renderSummaryFromWs(r, violations, month, year){
   const emp = r.employee || {};
   const shiftType = detectShiftTypeFromResult(r);
 
-  // 12hr employees earn OT per duty shift beyond the monthly quota, not from the
-  // snapshot's per-day overtimeHours (which follows the 7/8h rule).
+  // OT is derived from the day records with the hospital's own rules (quota for
+  // 12hr, base+12h cap otherwise) so this KPI matches the الدوام الإضافي tab.
   const dutyCount = t.duty12hCount || 0;
-  const otH = shiftType === '12hr'
-    ? Math.max(0, dutyCount - DUTY_QUOTA_12HR) * 12
-    : (t.overtimeHours || 0);
+  const otH = otRowsFor(wsWorkedDays(r), shiftType, dutyCount).otMin / 60;
 
   // OT payout — cash instead of time off, 12hr shift employees only
   const salary = currentEmp?.basic_salary || 0;
@@ -946,6 +953,94 @@ function renderAttFromWs(r){
     </div>`;
 }
 
+// Worked days of the daily_attendance rows, oldest first, in the OT tab's shape.
+function attWorkedDays(att){
+  return (att||[])
+    .filter(a => a.status === 'present')
+    .sort((a,b) => String(a.att_date).localeCompare(String(b.att_date)))
+    .map(a => ({ dayNum:+String(a.att_date).slice(-2), code:a.shift_code, workedMin:a.worked_minutes||0 }));
+}
+
+// Worked days of a workspace result, oldest first, in the shape the OT tab wants.
+function wsWorkedDays(r){
+  return (Array.isArray(r.days) ? r.days : [])
+    .filter(d => d && (d.workedHours||0) > 0)
+    .sort((a,b) => (a.day||0) - (b.day||0))
+    .map(d => ({ dayNum:d.day, code:d.code, workedMin:Math.round((d.workedHours||0)*60) }));
+}
+
+function renderOvertimeFromWs(r, month, year){
+  renderOvertimeTab(
+    wsWorkedDays(r),
+    detectShiftTypeFromResult(r),
+    r.totals?.duty12hCount || 0,
+    month, year
+  );
+}
+
+/* ---- OVERTIME TAB ----
+   days: [{dayNum, code, workedMin}] already filtered to worked days.
+   Returns the per-day rows so callers can reuse the same totals. */
+function otRowsFor(days, shiftType, dutyCount){
+  const base = baseShiftHours(shiftType) * 60;
+  const cap  = MAX_DAILY_HOURS * 60;
+
+  if (shiftType === '12hr'){
+    // Every duty shift counts; the ones past the quota are the overtime ones.
+    let n = 0;
+    const rows = days.map(d => {
+      n++;
+      const isOt = n > DUTY_QUOTA_12HR;
+      return { ...d, otMin: isOt ? 12*60 : 0,
+               note:`المناوبة رقم ${n}${isOt?' — بعد الكوتا':''}` };
+    });
+    return { rows, otMin: Math.max(0, dutyCount - DUTY_QUOTA_12HR) * 12 * 60 };
+  }
+
+  const rows = days.map(d => {
+    const ot = Math.max(0, Math.min(d.workedMin||0, cap) - base);
+    return { ...d, otMin: ot,
+             note:(d.workedMin||0) > cap ? `تجاوز حد ${MAX_DAILY_HOURS} ساعة — احتُسب ${MAX_DAILY_HOURS} فقط` : '' };
+  });
+  return { rows, otMin: rows.reduce((s,r)=>s+r.otMin, 0) };
+}
+
+function renderOvertimeTab(days, shiftType, dutyCount, month, year){
+  const el = document.getElementById('tab-overtime');
+  const salary = currentEmp?.basic_salary || 0;
+  const is12   = shiftType === '12hr';
+  const { rows, otMin } = otRowsFor(days, shiftType, dutyCount);
+  const otRows = rows.filter(r => r.otMin > 0);
+
+  el.innerHTML = `
+    ${otBreakdown(shiftType, otMin/60, dutyCount, salary)}
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">⏱️ تفاصيل الدوام الإضافي — ${MONTHS[month-1]} ${year}</div>
+      </div>
+      ${otRows.length ? `<div class="table-wrap"><table>
+        <thead><tr><th>اليوم</th><th>الكود</th><th>ساعات العمل</th><th>الإضافي</th><th>ملاحظة</th></tr></thead>
+        <tbody>${otRows.map(r => `<tr>
+          <td style="font-weight:700">${new Date(year, month-1, r.dayNum).toLocaleDateString('ar-IQ',{weekday:'short',day:'numeric',month:'short'})}</td>
+          <td style="font-family:monospace;color:#8C1320;font-size:.76rem">${r.code||'—'}</td>
+          <td>${mHHMM(r.workedMin)}</td>
+          <td style="font-weight:800;color:#8C1320">${mHHMM(r.otMin)}</td>
+          <td style="color:#9C7078;font-size:.76rem">${r.note||'—'}</td>
+        </tr>`).join('')}</tbody>
+        <tfoot><tr>
+          <td colspan="3" style="font-weight:800;text-align:left">الإجمالي</td>
+          <td style="font-weight:800;color:#8C1320">${mHHMM(otMin)}</td><td></td>
+        </tr></tfoot>
+      </table></div>`
+      : `<div class="empty-state"><div class="empty-icon">⏱️</div>
+           <div class="empty-title">لا يوجد دوام إضافي هذا الشهر</div>
+           <div class="empty-sub">${is12
+             ? `المناوبات المنجزة ${dutyCount||0} من كوتا ${DUTY_QUOTA_12HR}`
+             : `لم يتجاوز الموظف ${baseShiftHours(shiftType)} ساعات في أي يوم`}</div>
+         </div>`}
+    </div>`;
+}
+
 /* ---- SUMMARY ---- */
 function renderSummary(shifts,att,leaves,viols,month,year){
   const st=currentEmp.shift_type||'8hr';
@@ -956,12 +1051,7 @@ function renderSummary(shifts,att,leaves,viols,month,year){
     if(a.status==='leave'){leaveDays++;workedMin+=(st==='12hr'?12:st==='7hr'?7:8)*60;}
   });
   if(!att.length)leaveDays=leaves.reduce((s,l)=>s+(l.total_days||0),0);
-  let otMin=0;
-  if(st==='12hr'){otMin=Math.max(0,dutyCount-DUTY_QUOTA_12HR)*12*60;}
-  else{
-    const base=baseShiftHours(st)*60, cap=MAX_DAILY_HOURS*60;
-    att.forEach(a=>{if(a.status==='present')otMin+=Math.max(0,Math.min(a.worked_minutes||0,cap)-base);});
-  }
+  const otMin=otRowsFor(attWorkedDays(att), st, dutyCount).otMin;
   const salary=currentEmp.basic_salary||0;
   const otPay=st==='12hr'?otPayout(otMin/60,salary):0;
   document.getElementById('tab-summary').innerHTML=`
