@@ -43,6 +43,9 @@ node --check /tmp/combined.js   # prints the exact "already been declared" ident
 ```
 Workaround for continuing to test a page that is dead this way: copy the file, rename the local declaration (e.g. `fDate` -> `fDateLocal`), serve the copy, and clearly label results as "patched copy" in the report.
 
+## Shared shell
+Every page loads `assets/hr-theme.css` + `assets/hr-shell.js`; the sidebar is injected at runtime into `<aside id="hr-sidebar">`, so it is not in the page source. Nav order, labels and the AR/EN switch live in `hr-shell.js` only — change them there, never per page. The switch writes `localStorage['hr-lang']`, sets `<html dir/lang>` + `body.en`, and fires `hr:lang` on `document`; `index.html` and the attendance app translate themselves in response, other pages are Arabic-only.
+
 ## Useful navigation notes
 - Typing `localhost:8811/Al-Mujtaba_HR_Attendance_System.html` in the omnibox can get mangled (underscore dropped) → 404. Navigate via the sidebar link "📊 التقارير والرفع" instead.
 - Employee detail: employees.html → search box → 🔍 بحث → click the row. Overtime card is "⏱️ احتساب الدوام الإضافي" on the ملخص tab.
@@ -57,6 +60,7 @@ Workaround for continuing to test a page that is dead this way: copy the file, r
   }).map(e=>e.employee_id)
   ```
 - Real 12hr subjects in the July 2026 snapshot: 2084 = 15 worked days (under-quota empty state), 2163 = 20 (rows 18–20, 36:00), 1525 = 21 (rows 18–21, 48:00). 8hr subjects: 2047 = 14:42 total, 1126 = 41:27 with ten 12h-cap days.
+- Each OT row also shows الدخول/الخروج punches (`inAt`/`outAt`, from `firstPunch`/`lastPunch` on the workspace path and `clock_in`/`clock_out` on the DB path) rendered by `otClock`, which must return `—` rather than `Invalid Date` for missing/garbage timestamps. Cross-check them against the same day in the 🕐 الحضور tab — both read the same source, so any divergence is a real bug. Useful sweep: for every rendered OT row assert `out − in ≈ workedMin` (allow ~1 min for dropped seconds; overnight shifts need `+1440` when negative) and that no row renders a dash unexpectedly.
 - Handy console probes against the loaded `allEmployees` array: find days over the 12h cap with `allEmployees.filter(e=>(e._wsResult?.days||[]).some(d=>d.workedHours>12))` (employee 1126 is a good 8hr cap case), and list 12hr duty/worked counts to pick test subjects.
 - Salary is rarely set in Supabase; to exercise the payout branch without writing to the production DB, set `currentEmp.basic_salary = <n>` in the console and click the "عرض" button (the button click is a real UI action that re-renders).
 - Attendance app language toggle is the EN / AR pair at the top-right of the header; the Duty Carryover modal is opened from "🔄 Duty Carryover" on tab "4. Department Report".

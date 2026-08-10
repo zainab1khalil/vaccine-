@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -37,6 +37,8 @@
     'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js'
   ], 0);
 </script>
+<link rel="stylesheet" href="assets/hr-theme.css">
+<script defer src="assets/hr-shell.js"></script>
 <style>
   :root{
     --red-900:#4A0812; --red-800:#650F1D; --red-700:#84142A; --red-600:#A11D33;
@@ -441,7 +443,6 @@
       </div>
     </div>
     <div class="header-meta">
-      <a href="index.html" class="meta-pill" id="dashboardBackBtn" title="العودة إلى لوحة التحكم" style="text-decoration:none;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:#fff;font-weight:700;font-size:12px;gap:5px;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.28)'" onmouseout="this.style.background='rgba(255,255,255,.18)'">🏠 <span data-i18n="backHome">Dashboard</span></a>
       <div class="meta-pill"><span data-i18n="month">Month</span>
         <select id="monthSelect"></select>
         <select id="yearSelect"></select>
@@ -3231,11 +3232,13 @@
   }
   function initLangToggle() {
     $$('#langToggle button').forEach(btn => {
-      btn.addEventListener('click', () => {
-        applyLang(btn.dataset.lang);
-        state.prefs.lang = btn.dataset.lang;
-        storageSet(STORAGE_KEYS.PREFS, state.prefs);
-      });
+      btn.addEventListener('click', () => window.hrShell.setLang(btn.dataset.lang));
+    });
+    // The shared sidebar switch and this toggle drive the same state.
+    document.addEventListener('hr:lang', e => {
+      applyLang(e.detail.lang);
+      state.prefs.lang = e.detail.lang;
+      storageSet(STORAGE_KEYS.PREFS, state.prefs);
     });
   }
 
@@ -4361,7 +4364,7 @@
       state.hospitalName = $('#hospitalNameInput').value;
       state.prefs.hospitalName = state.hospitalName;
     }
-    applyLang(state.prefs.lang || 'en');
+    applyLang(window.hrShell ? window.hrShell.lang : (state.prefs.lang || 'en'));
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
