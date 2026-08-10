@@ -461,7 +461,6 @@
   <button class="tab-btn" data-tab="config"><span data-i18n="tab2">2. Shifts &amp; Rules</span> <span class="badge" id="shiftBadge">0</span></button>
   <button class="tab-btn" data-tab="employees"><span data-i18n="tab3">3. Employees</span> <span class="badge" id="empBadge">0</span></button>
   <button class="tab-btn" data-tab="report"><span data-i18n="tab4">4. Department Report</span></button>
-  <button class="tab-btn" data-tab="residents"><span data-i18n="tab5">5. Residents 🏥</span></button>
   <button class="tab-btn" data-tab="detail"><span data-i18n="tab6">6. Daily Detail Report</span></button>
 </nav>
 </div>
@@ -653,7 +652,7 @@
           <span style="color:var(--ink-soft); font-size:12.5px;" id="reportMonthLabel"></span>
         </div>
         <div class="left">
-          <button class="btn ghost sm" id="btnShiftExceptions" style="gap:5px;">⚠ Shift Exceptions</button>
+          <button class="btn ghost sm" id="btnDutyCarryover" style="gap:5px;">🔄 <span data-i18n="btnDutyCarryover">Duty Carryover</span></button>
           <button class="btn ghost sm" id="btnExportXlsx" data-i18n="btnExportXlsx">Export Excel</button>
           <button class="btn ghost sm" id="btnExportCsv" data-i18n="btnExportCsv">Export CSV</button>
           <button class="btn primary sm" id="btnPrint" data-i18n="btnPrint">Print report</button>
@@ -683,30 +682,6 @@
             <tbody></tbody>
           </table>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== RESIDENTS PANEL ===== -->
-  <section class="panel" id="panel-residents">
-    <div style="max-width:900px;margin:0 auto;padding:20px 0;">
-      <h2 style="margin-bottom:4px;">🏥 <span data-i18n="residentsTitle">الأطباء المقيمون</span></h2>
-      <p style="color:var(--ink-soft);font-size:13px;margin-bottom:16px;" data-i18n="residentsDesc">احتساب الساعات فقط: مجموع ساعات الحضور الفعلية مقابل الهدف الشهري.</p>
-
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
-        <div>
-          <label style="font-size:12px;color:var(--ink-soft);" data-i18n="resMonthlyTarget">الهدف الشهري (ساعة)</label>
-          <input type="number" id="resTargetInput" value="204" min="1" step="1" style="width:80px;margin-left:6px;font-size:13px;">
-        </div>
-        <button class="btn primary sm" id="btnLoadResidents" data-i18n="btnLoadResidents">تحميل جدول المقيمين</button>
-        <button class="btn sm" id="btnExportResidents" data-i18n="btnExportResidents">⬇ تصدير Excel</button>
-      </div>
-
-      <div id="resFileHint" style="color:var(--ink-soft);font-size:12px;margin-bottom:10px;" data-i18n="resFileHintText">ارفع ملف جدول المقيمين من تبويب الاستيراد، أو حمّله مباشرةً هنا:</div>
-      <input type="file" id="resFileInput" accept=".xlsx,.xls" style="display:none;">
-
-      <div id="residentsList" style="overflow-x:auto;">
-        <div class="empty-state" style="padding:40px 0;"><div class="icon">🏥</div><div data-i18n="resEmptyState">لا توجد بيانات مقيمين. ارفع الجدول من تبويب الاستيراد.</div></div>
       </div>
     </div>
   </section>
@@ -1894,8 +1869,6 @@
     shiftExceptions: {},
     // Duty quota carryover from previous month: "deviceId" -> surplus duty shifts done last month beyond quota
     dutyCarryover: {},
-    // Residents schedule: [{id, name, dep, fullPart, target, scheduledHours, daysData}]
-    residentsData: [],
     prefs: { hospitalName: '', lang: 'en' },
     hospitalName: '',
     hasComputed: false
@@ -2999,8 +2972,7 @@
       cloudUrlLabel:'Project URL', cloudKeyLabel:'Anon public API key',
       cloudNotConnected:'Not connected', cloudConnected:'Connected',
       cloudConnect:'Connect', cloudDisconnect:'Disconnect', close:'Close',
-      tab1:'1. Import Data', tab2:'2. Shifts & Rules', tab3:'3. Employees', tab4:'4. Department Report', tab5:'5. Residents 🏥', tab6:'6. Daily Detail',
-      residentsTitle:'Residents (أطباء مقيمون)', residentsDesc:'Hours-only mode: actual punched hours vs monthly target.',
+      tab1:'1. Import Data', tab2:'2. Shifts & Rules', tab3:'3. Employees', tab4:'4. Department Report', tab6:'6. Daily Detail',
       detailTitle:'Daily Attendance Detail Report', detailDesc:'Full day-by-day breakdown with زمنية balance and monthly total check.',
       p1Title:"Import this month's source files",
       p1Sub:'Everything below is read straight out of the workbooks you upload — nothing is hardcoded. Re-upload new files any month and the whole system recalculates.',
@@ -3076,15 +3048,6 @@
       alertBadTime:'Use HH:MM, 24-hour format.',
       promptNewShiftCode:'New shift code (e.g. A3):', promptNewLeaveCode:'New leave/off code (e.g. UP):',
       customLabel:'Custom',
-      // Residents panel
-      resSchedTitle:'🏥 Residents Schedule', resSchedNote:'(optional — جدول المقيمين)',
-      resSchedHint:'Upload the residents monthly schedule. Residents are calculated in hours-only mode — no shift enforcement.',
-      dzResLabel:'Click or drop جدول المقيمين.xlsx',
-      resMonthlyTarget:'Monthly target (hrs)', btnLoadResidents:'Load Residents Schedule', btnExportResidents:'⬇ Export Excel',
-      resFileHintText:'Upload the residents schedule Excel (جدول المقيمين) via the Import tab first, or load it here:',
-      resEmptyState:'No residents data loaded yet. Upload the residents schedule Excel in the Import tab.',
-      resColName:'Name', resColId:'ID', resColType:'Type', resColSched:'Scheduled hrs', resColTarget:'Target', resColBalance:'Balance', resColStatus:'Status',
-      resMet:'✓ Met', resShort:'✗ Short',
       // Detail report panel
       detailEmpLabel:'Employee(s) — hold Ctrl/Cmd to multi-select',
       detailZmaniyaLabel:'زمنية allowance / month (hrs)',
@@ -3108,13 +3071,10 @@
       detailTargetLabel2:'🎯 Monthly target', detailZmaniyaLabel2:'⏱ زمنية balance',
       detailPickerTitle:'👥 Select Employees', allDepts:'All Departments',
       detailSearchPh:'🔍 Search employee...',
-      // Exceptions modal
-      excModalTitle:'⚠ Shift Exceptions & Duty Carryover',
-      excModalDesc:'Deduct hours from an employee\'s monthly required total for approved exception days, and carry over surplus duty shifts from last month.',
-      excTabExcLabel:'📋 Day Exceptions', excTabDutyLabel:'🔄 Duty Carryover',
-      excPaneExcDesc:'If an employee\'s official shift is 8h but this month it became 7h — record it here. The system calculates all month days on the new hours. This affects total required hours and overtime.',
-      excAddTitle:'Add Monthly Exception', excAddHint:'Example: if original shift is 8h and became 7h → type 7. Applied to all month days.',
-      excHoursPh:'New shift hours', excHrsPerDay:'h/day', excNotePh:'Reason (optional)',
+      // Duty carryover modal
+      btnDutyCarryover:'Duty Carryover',
+      excModalTitle:'🔄 Duty Carryover',
+      excModalDesc:'Carry over surplus duty shifts from last month so they reduce this month\'s quota. Shift exceptions are managed on the Exceptions page.',
       excPaneDutyDesc:'If an employee did more duty shifts last month than the quota, the surplus reduces this month\'s quota. E.g. quota=17, last month=20 → surplus=3 → this month effective quota=14.',
       excCarryoverAddTitle:'Add Carryover from Last Month', excSurplusPh:'Surplus shifts',
       selectEmpOpt:'— Select Employee —', btnAdd:'Add',
@@ -3127,8 +3087,7 @@
       cloudUrlLabel:'رابط المشروع (Project URL)', cloudKeyLabel:'مفتاح API العام (anon key)',
       cloudNotConnected:'غير متصل', cloudConnected:'متصل',
       cloudConnect:'اتصال', cloudDisconnect:'قطع الاتصال', close:'إغلاق',
-      tab1:'١. استيراد البيانات', tab2:'٢. الورديات والقواعد', tab3:'٣. الموظفون', tab4:'٤. تقرير الأقسام', tab5:'٥. المقيمون 🏥', tab6:'٦. تقرير تفصيلي',
-      residentsTitle:'الأطباء المقيمون', residentsDesc:'احتساب الساعات فقط: مجموع ساعات الحضور الفعلية مقابل الهدف الشهري.',
+      tab1:'١. استيراد البيانات', tab2:'٢. الورديات والقواعد', tab3:'٣. الموظفون', tab4:'٤. تقرير الأقسام', tab6:'٦. تقرير تفصيلي',
       detailTitle:'تقرير الحضور اليومي التفصيلي', detailDesc:'تفاصيل يوم بيوم لكل موظف مع رصيد الزمنية والإجماليات.',
       p1Title:'استيراد ملفات هذا الشهر',
       p1Sub:'كل ما يظهر أدناه يُقرأ مباشرة من الملفات التي ترفعها — لا توجد بيانات ثابتة مسبقًا. ارفع ملفات جديدة كل شهر ليعيد النظام الحساب تلقائيًا.',
@@ -3204,15 +3163,6 @@
       alertBadTime:'استخدم صيغة HH:MM بنظام ٢٤ ساعة.',
       promptNewShiftCode:'رمز وردية جديد (مثال: A3):', promptNewLeaveCode:'رمز إجازة/عطلة جديد (مثال: UP):',
       customLabel:'مخصص',
-      // Residents panel
-      resSchedTitle:'🏥 جدول المقيمين', resSchedNote:'(اختياري)',
-      resSchedHint:'ارفع جدول المقيمين الشهري. يتم احتساب ساعات المقيمين فقط دون تطبيق نظام الورديات.',
-      dzResLabel:'اسحب وأفلت أو اختر جدول المقيمين.xlsx',
-      resMonthlyTarget:'الهدف الشهري (ساعة)', btnLoadResidents:'تحميل جدول المقيمين', btnExportResidents:'⬇ تصدير Excel',
-      resFileHintText:'ارفع ملف جدول المقيمين من تبويب الاستيراد، أو حمّله مباشرةً هنا:',
-      resEmptyState:'لا توجد بيانات مقيمين. ارفع الجدول من تبويب الاستيراد.',
-      resColName:'الاسم', resColId:'الرقم', resColType:'النوع', resColSched:'الساعات المجدولة', resColTarget:'الهدف', resColBalance:'الفرق', resColStatus:'الحالة',
-      resMet:'✓ مكتمل', resShort:'✗ ناقص',
       // Detail report panel
       detailEmpLabel:'الموظف / الموظفون — اضغط Ctrl/Cmd لاختيار أكثر من موظف',
       detailZmaniyaLabel:'رصيد الزمنية / الشهر (ساعة)',
@@ -3236,13 +3186,10 @@
       detailTargetLabel2:'🎯 الهدف الشهري', detailZmaniyaLabel2:'⏱ رصيد الزمنية',
       detailPickerTitle:'👥 اختر الموظفين', allDepts:'كل الأقسام',
       detailSearchPh:'🔍 ابحث عن موظف...',
-      // Exceptions modal
-      excModalTitle:'⚠ استثناءات الوردية وفائض المناوبات',
-      excModalDesc:'خصم ساعات من الإجمالي الشهري المطلوب للموظف عند وجود استثناء معتمد، ونقل فائض المناوبات من الشهر الماضي.',
-      excTabExcLabel:'📋 استثناءات اليوم', excTabDutyLabel:'🔄 فائض المناوبات',
-      excPaneExcDesc:'إذا كانت وردية الموظف الرسمية 8 ساعات لكن هذا الشهر صارت 7 ساعات — سجّل ذلك هنا. النظام سيحسب كل أيام الشهر على أساس الساعات الجديدة. هذا يؤثر على الساعات المطلوبة وحساب الوقت الإضافي.',
-      excAddTitle:'إضافة استثناء شهري', excAddHint:'مثال: إذا الوردية الأصلية 8 ساعات وصارت 7 ← اكتب 7. يُطبَّق على كل أيام الشهر.',
-      excHoursPh:'ساعات الوردية الجديدة', excHrsPerDay:'س/يوم', excNotePh:'السبب (اختياري)',
+      // Duty carryover modal
+      btnDutyCarryover:'فائض المناوبات',
+      excModalTitle:'🔄 فائض المناوبات',
+      excModalDesc:'نقل فائض المناوبات من الشهر الماضي لتقليل حصة هذا الشهر. تُدار استثناءات الوردية في صفحة الاستثناءات.',
       excPaneDutyDesc:'إذا عمل موظف مناوبات أكثر من الحصة الشهر الماضي، الفائض يُقلّل حصة هذا الشهر. مثال: الحصة 17، الشهر الماضي 20 → فائض 3 → الحصة الفعلية هذا الشهر 14.',
       excCarryoverAddTitle:'إضافة فائض من الشهر الماضي', excSurplusPh:'عدد المناوبات الزائدة',
       selectEmpOpt:'— اختر الموظف —', btnAdd:'إضافة',
@@ -3640,40 +3587,9 @@
     })();
   }
 
-  // ------------------------------------------------- shift exceptions modal --
-  function renderExcList() {
-    const list = $('#excList');
-    if (!list) return;
-    const emp = state.merged ? state.merged.employees : [];
-    const entries = Object.entries(state.shiftExceptions).filter(([,v]) => v && v.shiftHours != null);
-
-    if (!entries.length) {
-      list.innerHTML = '<div class="exc-empty">لا توجد استثناءات. أضف استثناءً أدناه لتغيير ساعات الوردية الشهرية لموظف.</div>';
-    } else {
-      let html = '';
-      for (const [id, exc] of entries) {
-        const e = emp.find(e => String(e.deviceId) === String(id));
-        const empName = e ? e.name + ' <span style="font-size:11px;color:var(--ink-faint);">' + (e.deptRaw||'') + '</span>' : 'ID ' + id;
-        html += `<div class="exc-item" style="padding:8px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;">
-          <span class="exc-name" style="flex:1;">${empName}</span>
-          <span class="exc-hrs" style="background:var(--amber-bg);color:var(--amber);">${exc.shiftHours}س/يوم</span>
-          ${exc.note ? `<span style="font-size:11px;color:var(--ink-faint);max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml(exc.note)}">${escapeHtml(exc.note)}</span>` : ''}
-          <button class="exc-del" data-id="${id}" title="حذف الاستثناء">×</button>
-        </div>`;
-      }
-      list.innerHTML = html;
-      list.querySelectorAll('.exc-del').forEach(btn => {
-        btn.addEventListener('click', () => {
-          delete state.shiftExceptions[btn.dataset.id];
-          storageSet(STORAGE_KEYS.SHIFT_EXCEPTIONS, state.shiftExceptions);
-          renderExcList();
-          recompute();
-        });
-      });
-    }
-    renderDutyCarryoverList();
-  }
-
+  // ------------------------------------------------------ duty carryover modal --
+  // Shift exceptions are managed on the dedicated Exceptions page (exceptions.html);
+  // state.shiftExceptions is still consumed by computeMonth and synced from the cloud.
   function renderDutyCarryoverList() {
     const list = $('#dutyCarryoverList');
     if (!list) return;
@@ -3681,69 +3597,48 @@
     const entries = Object.entries(state.dutyCarryover).filter(([,v]) => v > 0);
     if (!entries.length) {
       list.innerHTML = '<div class="exc-empty">لا يوجد فائض. إذا عمل موظف مناوبات أكثر من الحصة الشهر الماضي، سجّل الفائض هنا.</div>';
-    } else {
-      list.innerHTML = entries.map(([id, surplus]) => {
-        const e = emp.find(e => String(e.deviceId) === String(id));
-        const label = e ? e.name + ' <span style="font-size:11px;color:var(--ink-faint);">' + (e.deptRaw||'') + '</span>' : 'ID ' + id;
-        const newQuota = Math.max(0, state.settings.monthlyDutyQuota - surplus);
-        return `<div class="exc-item">
-          <span class="exc-name">${label}</span>
-          <span class="exc-hrs" style="background:var(--green-bg);color:var(--green);">+${surplus} فائض → حصة ${newQuota}</span>
-          <button class="exc-del" data-id="${id}" title="حذف">×</button>
-        </div>`;
-      }).join('');
-      list.querySelectorAll('.exc-del').forEach(btn => {
-        btn.addEventListener('click', () => {
-          delete state.dutyCarryover[btn.dataset.id];
-          storageSet(STORAGE_KEYS.DUTY_CARRYOVER, state.dutyCarryover);
-          renderExcList();
-          recompute();
-        });
-      });
+      return;
     }
+    list.innerHTML = entries.map(([id, surplus]) => {
+      const e = emp.find(e => String(e.deviceId) === String(id));
+      const label = e ? e.name + ' <span style="font-size:11px;color:var(--ink-faint);">' + (e.deptRaw||'') + '</span>' : 'ID ' + id;
+      const newQuota = Math.max(0, state.settings.monthlyDutyQuota - surplus);
+      return `<div class="exc-item">
+        <span class="exc-name">${label}</span>
+        <span class="exc-hrs" style="background:var(--green-bg);color:var(--green);">+${surplus} فائض → حصة ${newQuota}</span>
+        <button class="exc-del" data-id="${id}" title="حذف">×</button>
+      </div>`;
+    }).join('');
+    list.querySelectorAll('.exc-del').forEach(btn => {
+      btn.addEventListener('click', () => {
+        delete state.dutyCarryover[btn.dataset.id];
+        storageSet(STORAGE_KEYS.DUTY_CARRYOVER, state.dutyCarryover);
+        renderDutyCarryoverList();
+        recompute();
+      });
+    });
   }
 
-  function populateExcEmpSelect() {
-    const sel = $('#excEmpSelect');
-    const sel2 = $('#dutyCarryEmpSelect');
-    if (!state.merged) return;
+  function populateCarryoverEmpSelect() {
+    const sel = $('#dutyCarryEmpSelect');
+    if (!sel || !state.merged) return;
     const sorted = [...getEmployeeList()].sort((a,b) => (a.name||'').localeCompare(b.name||'', 'ar'));
-    const opts = `<option value="">${t('selectEmpOpt')}</option>` +
+    sel.innerHTML = `<option value="">${t('selectEmpOpt')}</option>` +
       sorted.map(e => `<option value="${e.deviceId}">${e.name} (${e.deptRaw || e.deptNorm})</option>`).join('');
-    if (sel) sel.innerHTML = opts;
-    if (sel2) sel2.innerHTML = opts;
   }
 
-  function initShiftExceptions() {
+  function initDutyCarryover() {
     const backdrop = $('#excModalBackdrop');
     if (!backdrop) return;
 
-    $('#btnShiftExceptions').addEventListener('click', () => {
-      populateExcEmpSelect();
-      renderExcList();
+    $('#btnDutyCarryover') && $('#btnDutyCarryover').addEventListener('click', () => {
+      populateCarryoverEmpSelect();
+      renderDutyCarryoverList();
       backdrop.style.display = 'flex';
     });
     backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.style.display = 'none'; });
     $('#btnExcClose').addEventListener('click', () => { backdrop.style.display = 'none'; });
 
-    // Add monthly shift override
-    $('#btnAddException').addEventListener('click', () => {
-      const id  = $('#excEmpSelect').value;
-      const hrs = parseFloat($('#excHoursInput').value);
-      const note = ($('#excNoteInput') && $('#excNoteInput').value.trim()) || '';
-      if (!id) { alert('اختر موظفاً أولاً.'); return; }
-      if (!hrs || hrs <= 0 || hrs > 24) { alert('أدخل عدد ساعات صحيح (0.5 – 24).'); return; }
-      // Store as monthly override object
-      state.shiftExceptions[id] = { shiftHours: hrs, note };
-      storageSet(STORAGE_KEYS.SHIFT_EXCEPTIONS, state.shiftExceptions);
-      $('#excEmpSelect').value = '';
-      $('#excHoursInput').value = '';
-      if ($('#excNoteInput')) $('#excNoteInput').value = '';
-      renderExcList();
-      recompute();
-    });
-
-    // Add duty carryover
     $('#btnAddCarryover') && $('#btnAddCarryover').addEventListener('click', () => {
       const id = $('#dutyCarryEmpSelect').value;
       const surplus = parseFloat($('#dutyCarrySurplusInput').value);
@@ -3753,171 +3648,9 @@
       storageSet(STORAGE_KEYS.DUTY_CARRYOVER, state.dutyCarryover);
       $('#dutyCarryEmpSelect').value = '';
       $('#dutyCarrySurplusInput').value = '';
-      renderExcList();
+      renderDutyCarryoverList();
       recompute();
     });
-  }
-
-    // ================================================= RESIDENTS MODULE ======
-  // Shift types used by residents schedule and their hours
-  const RESIDENT_SHIFT_HOURS = {
-    A1:8, A2:8, M1:8, M2:8, M5:8, N1:8, N2:16, K:8, D:12, N:12, N3:12, N4:16,
-    P4:4, D1:12, L1:16, L:24, P6:6
-  };
-
-  function parseResidentsExcel(wb) {
-    // Find the SCHEDULE sheet
-    const sheetName = wb.SheetNames.find(n => /schedule/i.test(n)) || wb.SheetNames[0];
-    const ws = wb.Sheets[sheetName];
-    if (!ws) return [];
-    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-    // Find header row (has 'Name' or 'SN')
-    let hdrIdx = 0;
-    for (let i = 0; i < Math.min(rows.length, 10); i++) {
-      if (rows[i].some(c => /^name$/i.test(String(c).trim()) || /^SN$/i.test(String(c).trim()))) {
-        hdrIdx = i; break;
-      }
-    }
-    // Day columns: find columns for days 1-31 (header row contains 1..31)
-    const hdr = rows[hdrIdx] || [];
-    const dayColMap = {}; // day number -> col index
-    for (let c = 0; c < hdr.length; c++) {
-      const v = parseInt(hdr[c], 10);
-      if (!isNaN(v) && v >= 1 && v <= 31) dayColMap[v] = c;
-    }
-    // Find name col, id col, dep col, full/part col
-    const nameCol = hdr.findIndex(h => /^name$/i.test(String(h).trim()));
-    const idCol = hdr.findIndex(h => /^id$/i.test(String(h).trim()));
-    const depCol = hdr.findIndex(h => /^dep$/i.test(String(h).trim()));
-    const typeCol = hdr.findIndex(h => /full.*part|part.*full|classification|time/i.test(String(h).trim()));
-    const targetCol = hdr.findIndex(h => /^target$/i.test(String(h).trim()));
-    const totalCol = hdr.findIndex(h => /^total$/i.test(String(h).trim()));
-    const workedCol = hdr.findIndex(h => /^working$/i.test(String(h).trim()));
-
-    const residents = [];
-    for (let r = hdrIdx + 2; r < rows.length; r++) {
-      const row = rows[r];
-      if (!row || row.every(c => c === '' || c == null)) continue;
-      const name = String(row[nameCol] || '').trim();
-      if (!name || /^\d+$/.test(name)) continue; // skip shift-key legend rows
-      // Skip footer/legend rows that don't look like employee entries
-      const idVal = String(row[idCol] || '').trim();
-      const dep = String(row[depCol] || '').trim();
-      if (!dep && !name) continue;
-      const days = {};
-      for (const [day, col] of Object.entries(dayColMap)) {
-        const code = String(row[col] || '').trim();
-        if (code) days[day] = code;
-      }
-      const target = parseInt(row[targetCol] || 204, 10) || 204;
-      const scheduledHours = parseFloat(row[totalCol] || 0) || 0;
-      residents.push({ id: idVal, name, dep, type: String(row[typeCol] || '').trim(), target, scheduledHours, days });
-    }
-    return residents;
-  }
-
-  function computeResidentHours(resident, punchesByDevice, allLeaves, year, month) {
-    // Find matching employee by name fuzzy match
-    const nameNorm = resident.name.replace(/\s+/g, ' ').trim();
-    let punch = null;
-    // Try to match device ID numerically
-    if (resident.id && /^\d+$/.test(resident.id)) {
-      punch = punchesByDevice.get(parseInt(resident.id, 10)) || punchesByDevice.get(String(resident.id));
-    }
-    if (!punch) {
-      // Fuzzy name match across all devices
-      for (const [devId, dayMap] of punchesByDevice.entries()) {
-        // device ID heuristic: skip
-        punch = dayMap; break; // fallback: can't match — skip
-      }
-      punch = null;
-    }
-    // Compute days from the schedule
-    const daysInMonth = new Date(year, month, 0).getDate();
-    const dayRecords = [];
-    let totalWorked = 0;
-    let totalScheduled = 0;
-    for (let d = 1; d <= daysInMonth; d++) {
-      const code = resident.days[d] || '';
-      const schedHours = code ? (RESIDENT_SHIFT_HOURS[code] || 0) : 0;
-      totalScheduled += schedHours;
-      dayRecords.push({ day: d, code, schedHours, worked: 0 });
-    }
-    return { days: dayRecords, totalWorked, totalScheduled, target: resident.target };
-  }
-
-  function renderResidentsPanel() {
-    const area = $('#residentsList');
-    if (!area) return;
-    const data = state.residentsData;
-    if (!data || !data.length) {
-      area.innerHTML = `<div class="empty-state" style="padding:40px 0;"><div class="icon">🏥</div><div>${t('resEmptyState')}</div></div>`;
-      return;
-    }
-    const target = parseInt($('#resTargetInput').value || 204, 10);
-    // Group by department
-    const byDep = {};
-    for (const r of data) {
-      if (!byDep[r.dep]) byDep[r.dep] = [];
-      byDep[r.dep].push(r);
-    }
-    let html = '';
-    for (const [dep, members] of Object.entries(byDep)) {
-      html += `<div style="margin-bottom:18px;">
-        <div style="font-weight:700;font-size:13px;padding:6px 10px;background:var(--red-50);border-radius:8px 8px 0 0;border:1px solid var(--line);">${escapeHtml(dep)}</div>
-        <table class="data-table" style="border-radius:0 0 8px 8px;overflow:hidden;">
-          <thead><tr>
-            <th>${t('resColName')}</th><th>${t('resColId')}</th><th>${t('resColType')}</th>
-            <th class="center">${t('resColSched')}</th><th class="center">${t('resColTarget')}</th><th class="center">${t('resColBalance')}</th><th class="center">${t('resColStatus')}</th>
-          </tr></thead><tbody>`;
-      for (const r of members) {
-        const bal = r.scheduledHours - (r.target || target);
-        const ok = bal >= 0;
-        html += `<tr>
-          <td>${escapeHtml(r.name)}</td>
-          <td style="color:var(--ink-faint);font-size:11px;">${escapeHtml(r.id)}</td>
-          <td><span style="font-size:11px;padding:2px 6px;background:${r.type==='full'?'var(--green-bg)':'var(--amber-bg)'};color:${r.type==='full'?'var(--green)':'var(--amber)'};border-radius:5px;">${escapeHtml(r.type||'—')}</span></td>
-          <td class="num">${r.scheduledHours}</td>
-          <td class="num">${r.target || target}</td>
-          <td class="num" style="color:${ok?'var(--green)':'var(--red-700)'};">${bal >= 0 ? '+' : ''}${Math.round(bal*100)/100}</td>
-          <td class="center"><span style="padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;background:${ok?'var(--green-bg)':'var(--red-100)'};color:${ok?'var(--green)':'var(--red-700)'};">${ok ? '✓ Met' : '✗ Short'}</span></td>
-        </tr>`;
-      }
-      html += '</tbody></table></div>';
-    }
-    area.innerHTML = html;
-  }
-
-  function exportResidentsExcel() {
-    const data = state.residentsData;
-    if (!data.length) { alert(t('resEmptyState')); return; }
-    const target = parseInt($('#resTargetInput').value || 204, 10);
-    const rows = [['Name', 'ID', 'Department', 'Type', 'Scheduled Hours', 'Target Hours', 'Balance', 'Status']];
-    for (const r of data) {
-      const bal = r.scheduledHours - (r.target || target);
-      rows.push([r.name, r.id, r.dep, r.type, r.scheduledHours, r.target || target, Math.round(bal*100)/100, bal >= 0 ? 'Met' : 'Short']);
-    }
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols'] = [{ wch: 30 }, { wch: 12 }, { wch: 25 }, { wch: 12 }, { wch: 16 }, { wch: 14 }, { wch: 10 }, { wch: 10 }];
-    XLSX.utils.book_append_sheet(wb, ws, 'Residents');
-    XLSX.writeFile(wb, 'Residents_Report.xlsx');
-  }
-
-  function initResidentsPanel() {
-    $('#btnLoadResidents') && $('#btnLoadResidents').addEventListener('click', () => {
-      $('#resFileInput').click();
-    });
-    $('#resFileInput') && $('#resFileInput').addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const data = await file.arrayBuffer();
-      const wb = XLSX.read(data, { type: 'array' });
-      state.residentsData = parseResidentsExcel(wb);
-      renderResidentsPanel();
-    });
-    $('#resTargetInput') && $('#resTargetInput').addEventListener('change', renderResidentsPanel);
-    $('#btnExportResidents') && $('#btnExportResidents').addEventListener('click', exportResidentsExcel);
   }
 
   // ============================================ DETAILED DAILY REPORT =======
@@ -4517,8 +4250,7 @@
     initTopbarSync();
     initLangToggle();
     initCloudSync();
-    initShiftExceptions();
-    initResidentsPanel();
+    initDutyCarryover();
     initDetailReport();
 
     setupDropzone('#dz-dept', '#file-dept', handleDeptFiles);
@@ -4640,42 +4372,10 @@
 
 <div class="exc-modal-backdrop" id="excModalBackdrop">
   <div class="exc-modal" style="max-width:600px;">
-    <h3 data-i18n="excModalTitle">⚠ Shift Exceptions &amp; Duty Carryover</h3>
-    <p class="sub" data-i18n="excModalDesc">Deduct hours from an employee's monthly required total for approved exception days, and carry over surplus duty shifts from last month.</p>
+    <h3 data-i18n="excModalTitle">🔄 Duty Carryover</h3>
+    <p class="sub" data-i18n="excModalDesc">Carry over surplus duty shifts from last month so they reduce this month's quota. Shift exceptions are managed on the Exceptions page.</p>
 
-    <!-- TAB SWITCHER -->
-    <div style="display:flex;gap:4px;margin-bottom:12px;background:var(--red-50);border-radius:8px;padding:3px;">
-      <button class="btn sm" id="excTabExc" onclick="document.getElementById('excPaneExc').style.display='block';document.getElementById('excPaneDuty').style.display='none';this.style.background='var(--surface)';this.style.color='var(--red-700)';document.getElementById('excTabDuty').style.background='transparent';document.getElementById('excTabDuty').style.color='var(--ink-soft)';" style="flex:1;background:var(--surface);color:var(--red-700);border:none;" data-i18n="excTabExcLabel">📋 Day Exceptions</button>
-      <button class="btn sm" id="excTabDuty" onclick="document.getElementById('excPaneDuty').style.display='block';document.getElementById('excPaneExc').style.display='none';this.style.background='var(--surface)';this.style.color='var(--red-700)';document.getElementById('excTabExc').style.background='transparent';document.getElementById('excTabExc').style.color='var(--ink-soft)';" style="flex:1;background:transparent;color:var(--ink-soft);border:none;" data-i18n="excTabDutyLabel">🔄 Duty Carryover</button>
-    </div>
-
-    <!-- PANE 1: Day Exceptions -->
-    <div id="excPaneExc">
-      <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;" data-i18n="excPaneExcDesc">
-        If an employee's official shift is 8h but this month it became 7h — record it here. The system will calculate all month days based on the new hours instead of the original shift hours. This affects total required hours and overtime calculation.
-      </p>
-      <div class="exc-list" id="excList" style="max-height:180px;overflow-y:auto;"></div>
-      <div style="margin-top:10px;padding:10px;background:var(--red-50);border-radius:8px;border:1px solid var(--line);">
-        <div style="font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;" data-i18n="excAddTitle">Add Monthly Exception</div>
-        <div style="display:grid;grid-template-columns:1fr 130px;gap:6px;margin-bottom:6px;">
-          <select id="excEmpSelect" style="font-size:12.5px;"><option value="" data-i18n="selectEmpOpt">— Select Employee —</option></select>
-          <div style="display:flex;align-items:center;gap:4px;">
-            <input type="number" id="excHoursInput" placeholder="New shift hours" min="0.5" max="24" step="0.5" style="font-size:12.5px;width:100%;" data-i18n-ph="excHoursPh">
-            <span style="font-size:11px;color:var(--ink-soft);white-space:nowrap;" data-i18n="excHrsPerDay">h/day</span>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr auto;gap:6px;">
-          <input type="text" id="excNoteInput" placeholder="Reason (optional)" style="font-size:12.5px;" data-i18n-ph="excNotePh">
-          <button class="btn primary sm" id="btnAddException" data-i18n="btnAdd">Add</button>
-        </div>
-        <div style="font-size:10px;color:var(--ink-faint);margin-top:6px;" data-i18n="excAddHint">
-          Example: if original shift is 8h and became 7h → type 7. Applied to all month days.
-        </div>
-      </div>
-    </div>
-
-    <!-- PANE 2: Duty Carryover -->
-    <div id="excPaneDuty" style="display:none;">
+    <div id="excPaneDuty">
       <p style="font-size:12px;color:var(--ink-soft);margin:0 0 8px;" data-i18n="excPaneDutyDesc">If an employee did more duty shifts last month than the quota, the surplus reduces this month's quota. E.g. quota=17, last month=20 → surplus=3 → this month effective quota=14. If this month they do 14, quota is met with no OT.</p>
       <div class="exc-list" id="dutyCarryoverList" style="max-height:180px;overflow-y:auto;"></div>
       <div style="margin-top:10px;padding:10px;background:var(--red-50);border-radius:8px;border:1px solid var(--line);">

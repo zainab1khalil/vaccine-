@@ -5,11 +5,14 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\DoctorContract;
 use App\Models\Employee;
+use App\Services\AttendanceCalculatorService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class DoctorContractController extends Controller
 {
+    public function __construct(private AttendanceCalculatorService $calc) {}
+
     // GET /api/contracts?type=resident&department_id=
     public function index(Request $request): JsonResponse
     {
@@ -107,22 +110,23 @@ class DoctorContractController extends Controller
     // Returns all resident/specialist doctors with their required vs actual hours
     public function monthlySummary(int $month, int $year): JsonResponse
     {
+        $calc = $this->calc;
+
         // Get all employees who are residents or specialists
         $doctors = Employee::whereIn('classification', ['resident', 'specialist'])
             ->with('department')
             ->get();
 
-        $summary = $doctors->map(function ($emp) use ($month, $year) {
+        $summary = $doctors->map(function ($emp) use ($month, $year, $calc) {
             $contract = DoctorContract::activeFor(
                 $emp->employee_id,
                 \Carbon\Carbon::create($year, $month, 1)->toDateString()
             );
 
-            // Get actual worked hours from fingerprints
-            $workedMinutes = \App\Models\Fingerprint::where('employee_id', $emp->employee_id)
-                ->where('month', $month)
-                ->where('year', $year)
-                ->count(); // placeholder — real calc done by AttendanceCalculatorService
+            // Actual hours punched this month, from the attendance calculator
+            $report       = $calc->calculate($emp, $month, $year);
+            $workedHours  = $report['summary']['total_worked_hrs'];
+            $requiredHours = (float) ($contract?->monthly_hours ?? config('app.resident_default_hours', 160));
 
             return [
                 'employee_id'    => $emp->employee_id,
@@ -136,7 +140,10 @@ class DoctorContractController extends Controller
                     'start_date'    => $contract->start_date,
                     'end_date'      => $contract->end_date,
                 ] : null,
-                'required_hours' => $contract?->monthly_hours ?? config('app.resident_default_hours', 160),
+                'required_hours' => $requiredHours,
+                'worked_hours'   => $workedHours,
+                'balance_hours'  => round($workedHours - $requiredHours, 2),
+                'met'            => $workedHours >= $requiredHours,
                 'has_contract'   => (bool)$contract,
             ];
         });
@@ -149,6 +156,7 @@ class DoctorContractController extends Controller
                 'residents'   => $doctors->where('classification', 'resident')->count(),
                 'specialists' => $doctors->where('classification', 'specialist')->count(),
                 'no_contract' => $summary->where('has_contract', false)->count(),
+                'met'         => $summary->where('met', true)->count(),
             ],
         ]);
     }
