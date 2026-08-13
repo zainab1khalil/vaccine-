@@ -6,28 +6,31 @@
 <title>الموظفون — نظام HR مستشفى الإمام الحسن المجتبى (ع)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/hr-theme.css">
+<script defer src="assets/hr-shell.js"></script>
 <style>
+/* LAYOUT — fixed sidebar + offset come from assets/hr-theme.css */
+
+
 /* ===================== RESET ===================== */
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Tajawal','Segoe UI',Arial,sans-serif;background:#FAF7F7;color:#2A1218;direction:rtl;min-height:100vh;font-size:15px}
 
 /* ===================== TABLE LAYOUT ===================== */
-.page-wrapper{display:table;width:100%;min-height:100vh;table-layout:fixed}
-.sidebar-cell{display:table-cell;width:230px;vertical-align:top;background:linear-gradient(180deg,#5C0A15 0%,#8C1320 45%,#C01C2C 100%);position:sticky;top:0;height:100vh}
-.content-cell{display:table-cell;vertical-align:top}
+
+
 
 /* ===================== SIDEBAR ===================== */
-.sidebar-inner{width:230px;position:fixed;top:0;right:0;height:100vh;background:linear-gradient(180deg,#5C0A15 0%,#8C1320 45%,#C01C2C 100%);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden}
-.sidebar-logo{padding:1.1rem .9rem .85rem;display:flex;align-items:center;gap:.55rem;border-bottom:1px solid rgba(255,255,255,.1);flex-shrink:0}
-.sidebar-logo img{width:42px;height:42px;object-fit:contain;flex-shrink:0;border-radius:6px;background:#fff;padding:2px}
-.logo-name{color:#fff;font-size:.7rem;font-weight:800;line-height:1.3}
-.logo-sys{color:rgba(255,255,255,.55);font-size:.58rem;margin-top:1px}
-.nav-section{font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.32);padding:.55rem .9rem .22rem;font-weight:700}
-.nav-item{display:flex;align-items:center;gap:.55rem;padding:.52rem .9rem;color:rgba(255,255,255,.75);text-decoration:none;font-size:.8rem;font-weight:500;border-right:3px solid transparent;transition:all .15s}
-.nav-item:hover{background:rgba(255,255,255,.1);color:#fff;border-right-color:rgba(255,255,255,.4)}
-.nav-item.active{background:rgba(255,255,255,.15);color:#fff;border-right-color:#fff;font-weight:700}
-.nav-icon{font-size:.9rem;width:18px;text-align:center;flex-shrink:0}
-.sidebar-foot{padding:.7rem .9rem;border-top:1px solid rgba(255,255,255,.1);font-size:.62rem;color:rgba(255,255,255,.28);text-align:center;flex-shrink:0;margin-top:auto}
+
+
+
+
+
+
+
+
+
+
 
 /* ===================== TOPBAR ===================== */
 .topbar{background:#fff;border-bottom:1px solid #EDD8DB;padding:.75rem 1.4rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(92,10,21,.07)}
@@ -86,10 +89,10 @@ tbody td{padding:.58rem .8rem;color:#5C3840;vertical-align:middle;white-space:no
   animation:skeleton-shine 1.6s infinite linear;
 }
 .sk-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(90deg,#EDD8DB 0px,#F5E6E8 80px,#EDD8DB 160px);background-size:600px 100%;animation:skeleton-shine 1.6s infinite linear;display:inline-block}
-.sk-sm {width:60px; height:14px}
-.sk-md {width:110px;height:14px}
-.sk-lg {width:160px;height:14px}
-.sk-xl {width:90px; height:22px;border-radius:100px}
+.sk-sm{width:60px; height:14px}
+.sk-md{width:110px;height:14px}
+.sk-lg{width:160px;height:14px}
+.sk-xl{width:90px; height:22px;border-radius:100px}
 .sk-badge{width:70px;height:20px;border-radius:100px}
 
 /* ===================== BADGES ===================== */
@@ -173,37 +176,12 @@ tbody td{padding:.58rem .8rem;color:#5C3840;vertical-align:middle;white-space:no
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(42,18,24,.55);z-index:500;align-items:center;justify-content:center;padding:1rem}
 .modal-overlay.open{display:flex}
 .modal{background:#fff;border-radius:18px;padding:1.45rem;width:100%;max-width:520px;box-shadow:0 20px 60px rgba(92,10,21,.22);max-height:90vh;overflow-y:auto}
-.modal-title{font-size:.98rem;font-weight:800;color:#8C1320;margin-bottom:.95rem}
-</style>
+.modal-title{font-size:.98rem;font-weight:800;color:#8C1320;margin-bottom:.95rem}</style>
 </head>
 <body>
 
 <div class="page-wrapper">
   <!-- SIDEBAR CELL -->
-  <div class="sidebar-cell">
-    <div class="sidebar-inner">
-      <div class="sidebar-logo">
-        <img src="logo.png" alt="شعار" onerror="this.style.display='none'">
-        <div>
-          <div class="logo-name">مستشفى الإمام الحسن المجتبى (ع)</div>
-          <div class="logo-sys">نظام الموارد البشرية</div>
-        </div>
-      </div>
-      <button class="lang-btn" onclick="toggleLang()" style="margin:.6rem .9rem;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:8px;color:#fff;font-family:inherit;font-size:.74rem;font-weight:700;padding:.38rem .75rem;cursor:pointer;display:flex;align-items:center;gap:.4rem;width:calc(100% - 1.8rem)" id="lang-btn">🌐 <span id="lang-label">English</span></button>
-      <nav>
-        <div class="nav-section">الرئيسية</div>
-        <a class="nav-item" href="index.html"><span class="nav-icon">🏠</span> لوحة التحكم</a>
-        <div class="nav-section">الإدارة</div>
-        <a class="nav-item" href="departments.html"><span class="nav-icon">🏢</span> الأقسام</a>
-        <a class="nav-item active" href="employees.html"><span class="nav-icon">👥</span> الموظفون</a>
-        <div class="nav-section">العمليات</div>
-        <a class="nav-item" href="Al-Mujtaba_HR_Attendance_System.html"><span class="nav-icon">📊</span> التقارير والرفع</a>
-        <a class="nav-item" href="forms.html"><span class="nav-icon">📋</span> النماذج الرسمية</a>
-      </nav>
-              <div class="sidebar-foot">نظام HR © 2026</div>
-    </div>
-  </div>
-
   <!-- CONTENT CELL -->
   <div class="content-cell">
     <div class="topbar">
@@ -212,8 +190,7 @@ tbody td{padding:.58rem .8rem;color:#5C3840;vertical-align:middle;white-space:no
         <div class="topbar-meta" id="emp-count-lbl">جاري التحميل...</div>
       </div>
       <div class="topbar-actions">
-        <button class="btn btn-ghost btn-sm" onclick="openExceptionModal()" title="إضافة استثناء وردية لموظف (كيمياء، مزج IV...)">⚡ استثناء وردية</button>
-        <button class="btn btn-primary btn-sm" onclick="openEmpModal()">+ إضافة موظف</button>
+<button class="btn btn-primary btn-sm" onclick="openEmpModal()">+ إضافة موظف</button>
       </div>
     </div>
 
@@ -297,6 +274,7 @@ tbody td{padding:.58rem .8rem;color:#5C3840;vertical-align:middle;white-space:no
           <button class="tab-btn active" data-tab="summary">📋 ملخص</button>
           <button class="tab-btn" data-tab="schedule">📅 الجدول</button>
           <button class="tab-btn" data-tab="attendance">🕐 الحضور</button>
+          <button class="tab-btn" data-tab="overtime">⏱️ الدوام الإضافي</button>
           <button class="tab-btn" data-tab="leaves">🌴 الإجازات</button>
           <button class="tab-btn" data-tab="violations">⚖️ المخالفات</button>
           <button class="tab-btn" data-tab="disciplinary">📋 التأديبية</button>
@@ -305,6 +283,7 @@ tbody td{padding:.58rem .8rem;color:#5C3840;vertical-align:middle;white-space:no
         <div id="tab-summary"      class="tab-panel active"></div>
         <div id="tab-schedule"     class="tab-panel"></div>
         <div id="tab-attendance"   class="tab-panel"></div>
+        <div id="tab-overtime"     class="tab-panel"></div>
         <div id="tab-leaves"       class="tab-panel"></div>
         <div id="tab-violations"   class="tab-panel"></div>
         <div id="tab-disciplinary" class="tab-panel"></div>
@@ -509,15 +488,36 @@ async function init(){
 
   } else {
     // Fallback to our employees table
-    const [{data:deps},{data:emps}] = await Promise.all([
-      (await getSb()).from('departments').select('*').order('name'),
-      (await getSb()).from('employees').select('*,departments(name)').order('name'),
-    ]);
-    allDepts = deps||[]; allEmployees = emps||[];
-    document.getElementById('emp-count-lbl').textContent =
-      allEmployees.length
-        ? `${allEmployees.length} موظف في قاعدة البيانات`
-        : '⚠️ لا توجد بيانات — افتح نظام الحضور أولاً';
+    const client = await getSb();
+    if (client) {
+      const [{data:deps},{data:emps}] = await Promise.all([
+        client.from('departments').select('*').order('name'),
+        client.from('employees').select('*,departments(name)').order('name'),
+      ]);
+      allDepts = deps||[]; allEmployees = emps||[];
+      document.getElementById('emp-count-lbl').textContent =
+        allEmployees.length
+          ? `${allEmployees.length} موظف في قاعدة البيانات`
+          : '⚠️ لا توجد بيانات — افتح نظام الحضور أولاً';
+    } else {
+      // Use Laravel API when Supabase is not available
+      try {
+        const [deps, emps] = await Promise.all([
+          apiGet('/departments'),
+          apiGet('/employees'),
+        ]);
+        allDepts = Array.isArray(deps) ? deps : (deps?.data || []);
+        allEmployees = Array.isArray(emps) ? emps : (emps?.data || []);
+        document.getElementById('emp-count-lbl').textContent =
+          allEmployees.length
+            ? `${allEmployees.length} موظف في قاعدة البيانات`
+            : '⚠️ لا توجد بيانات — افتح نظام الحضور أولاً';
+      } catch (error) {
+        console.error('Laravel API error:', error);
+        document.getElementById('emp-count-lbl').textContent = '⚠️ خطأ في تحميل البيانات';
+        allDepts = []; allEmployees = [];
+      }
+    }
   }
 
   // Populate dept selects
@@ -653,16 +653,64 @@ async function loadMonthData(){
     renderSummaryFromWs(wsResult, violations||[], month, year);
     renderScheduleFromWs(wsResult, month, year);
     renderAttFromWs(wsResult);
+    renderOvertimeFromWs(wsResult, month, year);
   } else {
     src.textContent=(attendance&&attendance.length)?'✅ بيانات موجودة':'💡 افتح نظام الحضور لرفع البصمات';
     renderSummary(shifts||[],attendance||[],leaves||[],violations||[],month,year);
     renderScheduleTab(shifts||[],leaves||[],month,year);
     renderAttTab(attendance||[],leaves||[]);
+    renderOvertimeTab(attWorkedDays(attendance||[]), currentEmp.shift_type||'8hr', month, year);
   }
 
   renderLeavesTab(leaves||[]);
   renderViolTab(violations||[]);
   renderDiscTab(disciplinary||[]);
+}
+
+/* ---- OVERTIME ----
+   7/8hr shifts : every minute past the base shift is OT, capped so that
+                  base + OT never exceeds MAX_DAILY_HOURS per day.
+   12hr shifts  : 17 duty shifts a month are the quota; shift 18 onwards is OT.
+   Cash payout  : OT hours / 8 = OT days; OT days x (basic salary / 30). */
+const MAX_DAILY_HOURS = 12;
+const DUTY_QUOTA_12HR = 17;
+
+function baseShiftHours(shiftType){
+  return shiftType==='12hr' ? 12 : shiftType==='7hr' ? 7 : shiftType==='6hr' ? 6 : 8;
+}
+
+function otPayout(otHours, salary){
+  if (!(salary > 0) || !(otHours > 0)) return 0;
+  return Math.round((otHours / 8) * (salary / 30));
+}
+
+function otBreakdown(shiftType, otHours, dutyCount, salary){
+  const base  = baseShiftHours(shiftType);
+  const is12  = shiftType === '12hr';
+  const otDays = otHours > 0 ? otHours / 8 : 0;
+  const daily  = salary > 0 ? salary / 30 : 0;
+  const pay    = otPayout(otHours, salary);
+  const rule = is12
+    ? `كوتا الشهر ${DUTY_QUOTA_12HR} مناوبة · المناوبات المنجزة ${dutyCount||0} · كل مناوبة بعد الـ${DUTY_QUOTA_12HR} تُحتسب إضافياً (12 ساعة)`
+    : `الوردية الأساسية ${base} ساعة · كل دقيقة بعد الأساس إضافي · بحد أقصى ${MAX_DAILY_HOURS} ساعة لليوم (أساس + إضافي)`;
+  const payRow = is12 && salary > 0
+    ? `<div style="font-size:.8rem;color:#5C3840;line-height:1.9;margin-top:.4rem">
+         ${otHours.toFixed(1)} ساعة ÷ 8 = <strong>${otDays.toFixed(2)} يوم</strong> ·
+         الراتب الأساسي ${salary.toLocaleString()} ÷ 30 = <strong>${Math.round(daily).toLocaleString()} دينار/يوم</strong> ·
+         الاستحقاق النقدي = <strong style="color:#2E8B57">${pay.toLocaleString()} دينار</strong>
+       </div>`
+    : is12
+      ? `<div style="font-size:.78rem;color:#9C7078;margin-top:.4rem">أضف الراتب الأساسي للموظف لحساب الاستحقاق النقدي بدلاً من الإجازة التعويضية.</div>`
+      : '';
+  return `
+    <div class="card" style="margin-bottom:.85rem">
+      <div class="card-header"><div class="card-title">⏱️ احتساب الدوام الإضافي</div></div>
+      <div style="font-size:.82rem;color:#5C3840;line-height:1.9">
+        <div>${rule}</div>
+        <div>إجمالي الساعات الإضافية: <strong style="color:#8C1320">${otHours>0?otHours.toFixed(1):0} ساعة</strong></div>
+        ${payRow}
+      </div>
+    </div>`;
 }
 
 /* ---- RENDER FROM WORKSPACE RESULT ---- */
@@ -675,11 +723,15 @@ function renderSummaryFromWs(r, violations, month, year){
   const emp = r.employee || {};
   const shiftType = detectShiftTypeFromResult(r);
 
-  // OT payout — use basic_salary from currentEmp if available
-  const otH = t.overtimeHours || 0;
+  // OT is derived from the day records with the hospital's own rules (quota for
+  // 12hr, base+12h cap otherwise) so this KPI matches the الدوام الإضافي tab.
+  const ot = otRowsFor(wsWorkedDays(r), shiftType);
+  const dutyCount = ot.dutyCount;
+  const otH = ot.otMin / 60;
+
+  // OT payout — cash instead of time off, 12hr shift employees only
   const salary = currentEmp?.basic_salary || 0;
-  // Per-spec: OT hrs ÷ 8 = OT days; OT days × (salary/30) = payout
-  const otPay = (salary > 0 && otH > 0) ? Math.round((otH / 8) * (salary / 30)) : 0;
+  const otPay = shiftType === '12hr' ? otPayout(otH, salary) : 0;
 
   // Attendance rate
   const totalDays = (t.present||0) + (t.absent||0) + (t.leave||0) + (t.off||0);
@@ -723,8 +775,8 @@ function renderSummaryFromWs(r, violations, month, year){
       </div>`:''}
       ${shiftType==='12hr'?`
       <div class="kpi-box">
-        <div class="kpi-val">${t.duty12hCount??0}</div>
-        <div class="kpi-lbl">شيفتات الدوام (كوتا 17)</div>
+        <div class="kpi-val">${dutyCount}</div>
+        <div class="kpi-lbl">شيفتات الدوام (كوتا ${DUTY_QUOTA_12HR})</div>
       </div>`:''}
       <div class="kpi-box">
         <div class="kpi-val" style="color:${violations.length>0?'#C01C2C':'inherit'}">${violations.length}</div>
@@ -735,6 +787,8 @@ function renderSummaryFromWs(r, violations, month, year){
         <div class="kpi-lbl">معدل الحضور</div>
       </div>
     </div>
+
+    ${otBreakdown(shiftType, otH, dutyCount, salary)}
 
     ${(t.lateMinutes||0)>0?`
     <div class="card" style="margin-bottom:.85rem">
@@ -893,6 +947,101 @@ function renderAttFromWs(r){
     </div>`;
 }
 
+// Worked days of the daily_attendance rows, oldest first, in the OT tab's shape.
+function attWorkedDays(att){
+  return (att||[])
+    .filter(a => a.status === 'present')
+    .sort((a,b) => String(a.att_date).localeCompare(String(b.att_date)))
+    .map(a => ({ dayNum:+String(a.att_date).slice(-2), code:a.shift_code,
+                 workedMin:a.worked_minutes||0, inAt:a.clock_in||null, outAt:a.clock_out||null }));
+}
+
+// Worked days of a workspace result, oldest first, in the shape the OT tab wants.
+function wsWorkedDays(r){
+  return (Array.isArray(r.days) ? r.days : [])
+    .filter(d => d && (d.workedHours||0) > 0)
+    .sort((a,b) => (a.day||0) - (b.day||0))
+    .map(d => ({ dayNum:d.day, code:d.code, workedMin:Math.round((d.workedHours||0)*60),
+                 inAt:d.firstPunch||null, outAt:d.lastPunch||null }));
+}
+
+function renderOvertimeFromWs(r, month, year){
+  renderOvertimeTab(wsWorkedDays(r), detectShiftTypeFromResult(r), month, year);
+}
+
+/* ---- OVERTIME TAB ----
+   days: [{dayNum, code, workedMin}] already filtered to worked days.
+   The day records are the single source of truth: for 12hr employees each worked
+   day is one duty shift, so the rows, the total and the duty count all come from
+   the same sequence and can never disagree. */
+function otRowsFor(days, shiftType){
+  const base = baseShiftHours(shiftType) * 60;
+  const cap  = MAX_DAILY_HOURS * 60;
+
+  if (shiftType === '12hr'){
+    // Every duty shift counts; the ones past the quota are the overtime ones.
+    const rows = days.map((d, i) => {
+      const n = i + 1;
+      const isOt = n > DUTY_QUOTA_12HR;
+      return { ...d, otMin: isOt ? 12*60 : 0,
+               note:`المناوبة رقم ${n}${isOt?' — بعد الكوتا':''}` };
+    });
+    return { rows, dutyCount: days.length, otMin: rows.reduce((s,r)=>s+r.otMin, 0) };
+  }
+
+  const rows = days.map(d => {
+    const ot = Math.max(0, Math.min(d.workedMin||0, cap) - base);
+    return { ...d, otMin: ot,
+             note:(d.workedMin||0) > cap ? `تجاوز حد ${MAX_DAILY_HOURS} ساعة — احتُسب ${MAX_DAILY_HOURS} فقط` : '' };
+  });
+  return { rows, dutyCount: days.length, otMin: rows.reduce((s,r)=>s+r.otMin, 0) };
+}
+
+// Punch timestamp -> HH:MM, or a dash when the punch is missing.
+function otClock(ts){
+  if (!ts) return '—';
+  const d = new Date(ts);
+  return isNaN(d) ? '—' : d.toLocaleTimeString('ar', { hour:'2-digit', minute:'2-digit' });
+}
+
+function renderOvertimeTab(days, shiftType, month, year){
+  const el = document.getElementById('tab-overtime');
+  const salary = currentEmp?.basic_salary || 0;
+  const is12   = shiftType === '12hr';
+  const { rows, otMin, dutyCount } = otRowsFor(days, shiftType);
+  const otRows = rows.filter(r => r.otMin > 0);
+
+  el.innerHTML = `
+    ${otBreakdown(shiftType, otMin/60, dutyCount, salary)}
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">⏱️ تفاصيل الدوام الإضافي — ${MONTHS[month-1]} ${year}</div>
+      </div>
+      ${otRows.length ? `<div class="table-wrap"><table>
+        <thead><tr><th>التاريخ</th><th>الكود</th><th>الدخول</th><th>الخروج</th><th>ساعات العمل</th><th>الإضافي</th><th>ملاحظة</th></tr></thead>
+        <tbody>${otRows.map(r => `<tr>
+          <td style="font-weight:700">${new Date(year, month-1, r.dayNum).toLocaleDateString('ar-IQ',{weekday:'short',year:'numeric',month:'short',day:'numeric'})}</td>
+          <td style="font-family:monospace;color:#8C1320;font-size:.76rem">${r.code||'—'}</td>
+          <td>${otClock(r.inAt)}</td>
+          <td>${otClock(r.outAt)}</td>
+          <td>${mHHMM(r.workedMin)}</td>
+          <td style="font-weight:800;color:#8C1320">${mHHMM(r.otMin)}</td>
+          <td style="color:#9C7078;font-size:.76rem">${r.note||'—'}</td>
+        </tr>`).join('')}</tbody>
+        <tfoot><tr>
+          <td colspan="5" style="font-weight:800;text-align:left">الإجمالي</td>
+          <td style="font-weight:800;color:#8C1320">${mHHMM(otMin)}</td><td></td>
+        </tr></tfoot>
+      </table></div>`
+      : `<div class="empty-state"><div class="empty-icon">⏱️</div>
+           <div class="empty-title">لا يوجد دوام إضافي هذا الشهر</div>
+           <div class="empty-sub">${is12
+             ? `المناوبات المنجزة ${dutyCount||0} من كوتا ${DUTY_QUOTA_12HR}`
+             : `لم يتجاوز الموظف ${baseShiftHours(shiftType)} ساعات في أي يوم`}</div>
+         </div>`}
+    </div>`;
+}
+
 /* ---- SUMMARY ---- */
 function renderSummary(shifts,att,leaves,viols,month,year){
   const st=currentEmp.shift_type||'8hr';
@@ -903,10 +1052,9 @@ function renderSummary(shifts,att,leaves,viols,month,year){
     if(a.status==='leave'){leaveDays++;workedMin+=(st==='12hr'?12:st==='7hr'?7:8)*60;}
   });
   if(!att.length)leaveDays=leaves.reduce((s,l)=>s+(l.total_days||0),0);
-  let otMin=0;
-  if(st==='12hr'){if(dutyCount>17)otMin=(dutyCount-17)*12*60;}
-  else{const base=(st==='7hr'?7:8)*60;att.forEach(a=>{if(a.status==='present')otMin+=Math.max(0,Math.min(a.worked_minutes||0,720)-base);});}
-  const otPay=(currentEmp.basic_salary&&otMin>0)?Math.round((otMin/60/8)*(currentEmp.basic_salary/30)):0;
+  const otMin=otRowsFor(attWorkedDays(att), st).otMin;
+  const salary=currentEmp.basic_salary||0;
+  const otPay=st==='12hr'?otPayout(otMin/60,salary):0;
   document.getElementById('tab-summary').innerHTML=`
     <div class="kpi-mini">
       <div class="kpi-box"><div class="kpi-val" style="color:#2E8B57">${presentDays}</div><div class="kpi-lbl">أيام حضور</div></div>
@@ -918,6 +1066,7 @@ function renderSummary(shifts,att,leaves,viols,month,year){
       ${otPay>0?`<div class="kpi-box"><div class="kpi-val" style="color:#2E8B57;font-size:1.1rem">${otPay.toLocaleString()}</div><div class="kpi-lbl">قيمة الإضافي (دينار)</div></div>`:''}
       <div class="kpi-box"><div class="kpi-val" style="color:${viols.length>0?'#C01C2C':'inherit'}">${viols.length}</div><div class="kpi-lbl">مخالفات</div></div>
     </div>
+    ${otBreakdown(st, otMin/60, dutyCount, salary)}
     ${viols.length?`<div class="card"><div class="card-header"><div class="card-title">⚠️ آخر المخالفات</div></div>
       ${viols.slice(0,3).map(v=>`<div class="alert-item warn"><span class="alert-icon">⚖️</span><div>
         <div class="alert-text">${v.penalty||'—'}</div>
@@ -1152,193 +1301,5 @@ function getDates(from,to){
 init();
 </script>
 
-<!-- ══════════════════════════════════════════════════
-     SHIFT EXCEPTION MODAL  (Chemo / IV Mixing etc.)
-     ══════════════════════════════════════════════════ -->
-<div class="modal-overlay" id="exception-modal">
-  <div class="modal" style="max-width:540px">
-    <div style="font-size:1rem;font-weight:800;color:#5C0A15;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:1px solid #EDD8DB">
-      ⚡ إضافة استثناء وردية
-    </div>
-
-    <!-- Search by employee ID -->
-    <div class="form-group">
-      <label class="form-label">رقم الموظف أو الاسم</label>
-      <div style="display:flex;gap:.5rem">
-        <input type="text" id="exc-search" class="form-control" placeholder="ابحث بالرقم الوظيفي أو الاسم..." oninput="excSearch(this.value)">
-      </div>
-      <div id="exc-search-results" style="max-height:160px;overflow-y:auto;border:1px solid #EDD8DB;border-radius:8px;margin-top:.3rem;display:none"></div>
-    </div>
-
-    <!-- Selected employee info -->
-    <div id="exc-emp-info" style="display:none;background:#FAF7F7;border:1px solid #EDD8DB;border-radius:10px;padding:.75rem 1rem;margin-bottom:.85rem">
-      <div style="font-weight:800;color:#2A1218" id="exc-emp-name">—</div>
-      <div style="font-size:.76rem;color:#9C7078;margin-top:2px" id="exc-emp-dept">—</div>
-      <div style="font-size:.76rem;color:#5C3840;margin-top:4px">
-        ساعات الوردية الأصلية: <strong id="exc-orig-hrs">—</strong> ساعة
-      </div>
-    </div>
-
-    <!-- Month / Year -->
-    <div class="form-row" style="margin-bottom:.85rem">
-      <div class="form-group" style="margin:0">
-        <label class="form-label">الشهر</label>
-        <select id="exc-month" class="form-control" onchange="excPreview()">
-          ${[1,2,3,4,5,6,7,8,9,10,11,12].map(m=>`<option value="${m}" ${m===new Date().getMonth()+1?'selected':''}>${['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'][m-1]}</option>`).join('')}
-        </select>
-      </div>
-      <div class="form-group" style="margin:0">
-        <label class="form-label">السنة</label>
-        <select id="exc-year" class="form-control" onchange="excPreview()">
-          ${[2024,2025,2026,2027].map(y=>`<option value="${y}" ${y===new Date().getFullYear()?'selected':''}>${y}</option>`).join('')}
-        </select>
-      </div>
-    </div>
-
-    <!-- New hours -->
-    <div class="form-group">
-      <label class="form-label">ساعات الوردية بعد الاستثناء</label>
-      <input type="number" id="exc-new-hrs" class="form-control" min="1" max="24" step="0.5" placeholder="مثال: 7" oninput="excPreview()">
-    </div>
-
-    <!-- Reason -->
-    <div class="form-group">
-      <label class="form-label">السبب</label>
-      <input type="text" id="exc-reason" class="form-control" placeholder="مثال: قسم الكيمياء / مزج IV">
-    </div>
-
-    <!-- Live preview -->
-    <div id="exc-preview" style="display:none;background:#E6F3FA;border:1px solid #BDE0F5;border-radius:10px;padding:.75rem 1rem;margin-bottom:.85rem;font-size:.84rem;color:#1A6FA0;line-height:1.8">
-    </div>
-
-    <div style="display:flex;gap:.6rem;justify-content:flex-end;padding-top:.75rem;border-top:1px solid #EDD8DB">
-      <button class="btn btn-ghost" onclick="closeExceptionModal()">إلغاء</button>
-      <button class="btn btn-primary" id="exc-save-btn" onclick="saveException()">💾 حفظ الاستثناء</button>
-    </div>
-  </div>
-</div>
-
-<script>
-// ── EXCEPTION MODAL ──────────────────────────────────────────────
-let excSelectedEmp = null;
-
-function openExceptionModal() {
-  excSelectedEmp = null;
-  document.getElementById('exc-search').value = '';
-  document.getElementById('exc-search-results').style.display = 'none';
-  document.getElementById('exc-emp-info').style.display = 'none';
-  document.getElementById('exc-preview').style.display = 'none';
-  document.getElementById('exc-new-hrs').value = '';
-  document.getElementById('exc-reason').value = '';
-  document.getElementById('exception-modal').classList.add('open');
-}
-
-function closeExceptionModal() {
-  document.getElementById('exception-modal').classList.remove('open');
-}
-
-let excSearchTimer;
-async function excSearch(val) {
-  clearTimeout(excSearchTimer);
-  const box = document.getElementById('exc-search-results');
-  if (val.trim().length < 1) { box.style.display = 'none'; return; }
-
-  excSearchTimer = setTimeout(async () => {
-    try {
-      const res = await hrApi.getEmployees({ search: val.trim() });
-      const emps = res.data || [];
-      if (!emps.length) {
-        box.innerHTML = '<div style="padding:.6rem 1rem;font-size:.82rem;color:#9C7078">لا توجد نتائج</div>';
-      } else {
-        box.innerHTML = emps.slice(0, 8).map(e => `
-          <div onclick="excSelectEmp(${JSON.stringify(e).replace(/"/g,'&quot;')})"
-               style="padding:.55rem 1rem;cursor:pointer;font-size:.84rem;border-bottom:1px solid #EDD8DB;transition:background .1s"
-               onmouseover="this.style.background='#F5E6E8'" onmouseout="this.style.background=''">
-            <strong>${e.name}</strong>
-            <span style="color:#9C7078;font-size:.76rem;margin-right:.5rem">${e.employee_id}</span>
-            <span style="color:#5C3840;font-size:.74rem">${e.department?.name || ''}</span>
-          </div>`).join('');
-      }
-      box.style.display = 'block';
-    } catch(e) {
-      box.innerHTML = `<div style="padding:.6rem 1rem;color:#C01C2C;font-size:.82rem">خطأ: ${e.message}</div>`;
-      box.style.display = 'block';
-    }
-  }, 300);
-}
-
-function excSelectEmp(emp) {
-  excSelectedEmp = emp;
-  document.getElementById('exc-search').value = `${emp.name} — ${emp.employee_id}`;
-  document.getElementById('exc-search-results').style.display = 'none';
-  document.getElementById('exc-emp-name').textContent = emp.name;
-  document.getElementById('exc-emp-dept').textContent = emp.department?.name || '—';
-
-  const shiftHrs = emp.shift_type === '12hr' ? 12 : emp.shift_type === '7hr' ? 7 : 8;
-  document.getElementById('exc-orig-hrs').textContent = shiftHrs;
-  document.getElementById('exc-new-hrs').value = shiftHrs - 1; // default suggestion
-  document.getElementById('exc-emp-info').style.display = 'block';
-  excPreview();
-}
-
-async function excPreview() {
-  if (!excSelectedEmp) return;
-  const newHrs = parseFloat(document.getElementById('exc-new-hrs').value);
-  if (!newHrs || newHrs < 1) return;
-
-  const month = parseInt(document.getElementById('exc-month').value);
-  const year  = parseInt(document.getElementById('exc-year').value);
-
-  const prev = document.getElementById('exc-preview');
-  prev.innerHTML = '⏳ جاري الحساب...';
-  prev.style.display = 'block';
-
-  try {
-    const res = await hrApi.previewException(excSelectedEmp.employee_id, month, year, newHrs);
-    const p = res.preview;
-    if (!p) { prev.innerHTML = 'لم يتم رفع الجدول بعد لهذا الشهر'; return; }
-
-    const MONTHS_NAMES = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-    prev.innerHTML = `
-      <div style="font-weight:800;margin-bottom:.4rem">📊 معاينة الحساب — ${MONTHS_NAMES[month-1]} ${year}</div>
-      <div>أيام العمل المجدولة: <strong>${p.working_days} يوم</strong></div>
-      <div>الساعات الأصلية المطلوبة: <strong>${p.original_required_hrs} ساعة</strong>
-           <span style="font-size:.76rem">(${p.original_hours}س × ${p.working_days})</span></div>
-      <div>الساعات بعد الاستثناء: <strong style="color:#C01C2C">${p.new_required_hrs} ساعة</strong>
-           <span style="font-size:.76rem">(${p.new_hours}س × ${p.working_days})</span></div>
-      <div style="margin-top:.3rem;font-size:.76rem;opacity:.8">الفارق: ${p.difference_hrs} ساعة أقل</div>`;
-  } catch(e) {
-    prev.innerHTML = `<span style="color:#C01C2C">⚠️ ${e.message}</span>`;
-  }
-}
-
-async function saveException() {
-  if (!excSelectedEmp) { alert('يرجى اختيار موظف أولاً'); return; }
-  const newHrs = parseFloat(document.getElementById('exc-new-hrs').value);
-  if (!newHrs || newHrs < 1) { alert('يرجى إدخال ساعات الوردية الجديدة'); return; }
-
-  const month  = parseInt(document.getElementById('exc-month').value);
-  const year   = parseInt(document.getElementById('exc-year').value);
-  const reason = document.getElementById('exc-reason').value.trim();
-
-  const btn = document.getElementById('exc-save-btn');
-  btn.disabled = true; btn.textContent = '⏳ جاري الحفظ...';
-
-  try {
-    await hrApi.saveException(excSelectedEmp.employee_id, month, year, newHrs, reason);
-    showToast(`✅ تم حفظ الاستثناء للموظف ${excSelectedEmp.name}`, 'success');
-    closeExceptionModal();
-  } catch(e) {
-    alert('فشل الحفظ: ' + e.message);
-  } finally {
-    btn.disabled = false; btn.textContent = '💾 حفظ الاستثناء';
-  }
-}
-
-// Close on overlay click
-document.getElementById('exception-modal').addEventListener('click', e => {
-  if (e.target === document.getElementById('exception-modal')) closeExceptionModal();
-});
-</script>
 </body>
 </html>

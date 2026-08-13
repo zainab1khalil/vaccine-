@@ -9,16 +9,16 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 
 // ─── Laravel API base URL ───────────────────────────────────────
 // Change this to your VPS URL when deploying
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = 'http://127.0.0.1:8000/api';
 
 // ─── API helper ─────────────────────────────────────────────────
-async function apiGet(path) {
+window.apiGet = async function(path) {
   const res = await fetch(`${API_BASE}${path}`);
   if (!res.ok) throw new Error(`API ${path} → ${res.status}`);
   return res.json();
-}
+};
 
-async function apiPost(path, body) {
+window.apiPost = async function(path, body) {
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -29,9 +29,9 @@ async function apiPost(path, body) {
     throw new Error(err.message || err.error || `API ${path} → ${res.status}`);
   }
   return res.json();
-}
+};
 
-async function apiPut(path, body) {
+window.apiPut = async function(path, body) {
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -42,13 +42,13 @@ async function apiPut(path, body) {
     throw new Error(err.message || err.error || `API ${path} → ${res.status}`);
   }
   return res.json();
-}
+};
 
-async function apiDelete(path) {
+window.apiDelete = async function(path) {
   const res = await fetch(`${API_BASE}${path}`, { method: 'DELETE' });
   if (!res.ok) throw new Error(`API DELETE ${path} → ${res.status}`);
   return res.json();
-}
+};
 
 // ─── HR API — all pages use these functions ─────────────────────
 
@@ -267,6 +267,7 @@ const hrApi = {
 const _SB_CDNS = [
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js',
   'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.0.0/supabase.min.js',
 ];
 
 let _sbResolve;
@@ -290,7 +291,10 @@ let sb = new Promise(res => { _sbResolve = res; });
 
 async function getSb() {
   const client = await sb;
-  if (!client) throw new Error('Supabase client failed to load');
+  if (!client) {
+    console.warn('Supabase client failed to load - using Laravel API only');
+    return null;
+  }
   return client;
 }
 
