@@ -73,16 +73,10 @@ class ScheduleController extends Controller
         ]);
 
         $depId     = $request->department_id;
-        $depName   = $request->department_name ?? Department::find($depId)?->name ?? '';
+        $depName   = $request->department_name ?? Department::find($depId)?->name ?? "قسم {$depId}";
         $month     = $request->month;
         $year      = $request->year;
         $employees = $request->employees;
-
-        // Delete old schedule for this dept/month before inserting new one
-        EmployeeSchedule::where('department_id', $depId)
-            ->where('month', $month)
-            ->where('year', $year)
-            ->delete();
 
         // De-duplicate employees by employee_id (last one wins)
         $empMap = [];
@@ -91,68 +85,117 @@ class ScheduleController extends Controller
             if ($empId) $empMap[$empId] = $empData;
         }
 
-        // Upsert employees into employees table
-        foreach ($empMap as $empId => $empData) {
-            \DB::table('employees')->upsert(
-                [[
-                    'employee_id'   => $empId,
-                    'name'          => $empData['name'] ?? $empId,
-                    'department_id' => $depId,
-                    'shift_type'    => '8hr',
-                    'full_or_part'  => 'full',
-                    'created_at'    => now(),
-                    'updated_at'    => now(),
-                ]],
-                ['employee_id'],
-                ['name', 'department_id', 'updated_at']
-            );
-        }
+        $supabaseUrl = 'https://vuezoztxocpzooatxuxo.supabase.co';
+        $supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ1ZXpvenR4b2Nwem9vYXR4dXhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQzNzE2NjgsImV4cCI6MjA5OTk0NzY2OH0.5w6L9zsSxoYG-GWrn1g1a_y7pXVSXFam8B1di4MsCAo';
 
-        $insertedRows = 0;
-        foreach ($empMap as $empId => $empData) {
-            $days = $empData['days'] ?? [];
-
-            $rows = [];
-            foreach ($days as $day => $code) {
-                if (!$code) continue;
-                $rows[] = [
-                    'employee_id'   => $empId,
+        try {
+            // 1. Upsert employees to Supabase
+            foreach ($empMap as $empId => $empData) {
+                $name = isset($empData['name']) ? trim($empData['name']) : $empId;
+                
+                $response = Http::timeout(30)->withHeaders([
+                    'apikey' => $supabaseKey,
+                    'Authorization' => "Bearer {$supabaseKey}",
+                    'Content-Type' => 'application/json',
+                    'Prefer' => 'resolution=ignore-duplicates'
+                ])->post("{$supabaseUrl}/rest/v1/employees", [
+                    'employee_id' => $empId,
+                    'name' => $name,
                     'department_id' => $depId,
-                    'month'         => $month,
-                    'year'          => $year,
-                    'day'           => (int)$day,
-                    'shift_code'    => strtoupper(trim($code)),
-                    'created_at'    => now(),
-                    'updated_at'    => now(),
-                ];
+                    'shift_type' => '8hr',
+                    'full_or_part' => 'full',
+                ]);
+
+                if (!$response->successful()) {
+                    throw new \Exception("Failed to upsert employee {$empId}: " . $response->body());
+                }
             }
 
-            // Upsert in chunks to handle re-uploads
-            foreach (array_chunk($rows, 100) as $chunk) {
-                \DB::table('employee_schedules')->upsert(
-                    $chunk,
-                    ['employee_id', 'month', 'year', 'day'],
-                    ['shift_code', 'department_id', 'updated_at']
-                );
+            // 2. Delete existing schedules for this dept/month/year
+            $deleteResponse = Http::timeout(30)->withHeaders([
+                'apikey' => $supabaseKey,
+                'Authorization' => "Bearer {$supabaseKey}",
+            ])->delete("{$supabaseUrl}/rest/v1/employee_schedules", [
+                'department_id' => "eq.{$depId}",
+                'month' => "eq.{$month}",
+                'year' => "eq.{$year}",
+            ]);
+
+            // 3. Insert new schedule rows
+            $insertedRows = 0;
+            $allRows = [];
+
+            foreach ($empMap as $empId => $empData) {
+                $days = $empData['days'] ?? [];
+                foreach ($days as $day => $code) {
+                    if (!$code || trim($code) === '') continue;
+                    $allRows[] = [
+                        'employee_id' => $empId,
+                        'department_id' => $depId,
+                        'month' => (int)$month,
+                        'year' => (int)$year,
+                        'day' => (int)$day,
+                        'shift_code' => strtoupper(trim((string)$code)),
+                    ];
+                }
+            }
+
+            foreach (array_chunk($allRows, 100) as $chunk) {
+                $insertResponse = Http::timeout(30)->withHeaders([
+                    'apikey' => $supabaseKey,
+                    'Authorization' => "Bearer {$supabaseKey}",
+                    'Content-Type' => 'application/json',
+                    'Prefer' => 'resolution=ignore-duplicates'
+                ])->post("{$supabaseUrl}/rest/v1/employee_schedules", $chunk);
+
+                if (!$insertResponse->successful()) {
+                    throw new \Exception("Failed to insert schedules: " . $insertResponse->body());
+                }
                 $insertedRows += count($chunk);
             }
+
+            // 4. Mark schedule as uploaded
+            $deleteMonthlyResponse = Http::timeout(30)->withHeaders([
+                'apikey' => $supabaseKey,
+                'Authorization' => "Bearer {$supabaseKey}",
+            ])->delete("{$supabaseUrl}/rest/v1/monthly_schedules", [
+                'department_id' => "eq.{$depId}",
+                'month' => "eq.{$month}",
+                'year' => "eq.{$year}",
+            ]);
+
+            $monthlyResponse = Http::withHeaders([
+                'apikey' => $supabaseKey,
+                'Authorization' => "Bearer {$supabaseKey}",
+                'Content-Type' => 'application/json',
+            ])->post("{$supabaseUrl}/rest/v1/monthly_schedules", [
+                'department_id' => $depId,
+                'department_name' => $depName,
+                'month' => (int)$month,
+                'year' => (int)$year,
+                'uploaded_by' => 'dashboard',
+            ]);
+
+            if (!$monthlyResponse->successful()) {
+                throw new \Exception("Failed to mark schedule as uploaded: " . $monthlyResponse->body());
+            }
+
+            return response()->json([
+                'success'         => true,
+                'department'      => $depName,
+                'month'           => $month,
+                'year'            => $year,
+                'employees_count' => count($empMap),
+                'schedule_rows'   => $insertedRows,
+                'message'         => "تم رفع جدول {$depName} بنجاح — {$insertedRows} خلية جدول",
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        // Mark department as having uploaded a schedule this month
-        MonthlySchedule::updateOrCreate(
-            ['department_id' => $depId, 'month' => $month, 'year' => $year],
-            ['department_name' => $depName, 'uploaded_by' => 'dashboard']
-        );
-
-        return response()->json([
-            'success'          => true,
-            'department'       => $depName,
-            'month'            => $month,
-            'year'             => $year,
-            'employees_count'  => count($employees),
-            'schedule_rows'    => $insertedRows,
-            'message'          => "تم رفع جدول {$depName} بنجاح — {$insertedRows} خلية جدول",
-        ], 201);
     }
 
     // DELETE /api/schedules/{depId}/{month}/{year}

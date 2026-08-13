@@ -97,19 +97,32 @@ class ReportController extends Controller
     // Dashboard homepage KPI cards
     public function kpi(int $month, int $year): JsonResponse
     {
-        $totalDeps     = Department::count();
-        $uploadedDeps  = MonthlySchedule::where('month', $month)->where('year', $year)->count();
-        $totalEmps     = Employee::count();
-        $residents     = Employee::where('classification', 'resident')->count();
+        try {
+            $totalDeps     = Department::count();
+            $uploadedDeps  = MonthlySchedule::where('month', $month)->where('year', $year)->count();
+            $totalEmps     = Employee::count();
+            $residents     = Employee::where('classification', 'resident')->count();
 
-        return response()->json([
-            'month'             => $month,
-            'year'              => $year,
-            'total_departments' => $totalDeps,
-            'uploaded_schedules'=> $uploadedDeps,
-            'missing_schedules' => $totalDeps - $uploadedDeps,
-            'total_employees'   => $totalEmps,
-            'residents'         => $residents,
-        ]);
+            return response()->json([
+                'month'             => $month,
+                'year'              => $year,
+                'total_departments' => $totalDeps,
+                'uploaded_schedules'=> $uploadedDeps,
+                'missing_schedules' => $totalDeps - $uploadedDeps,
+                'total_employees'   => $totalEmps,
+                'residents'         => $residents,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'month'             => $month,
+                'year'              => $year,
+                'total_departments' => 0,
+                'uploaded_schedules'=> 0,
+                'missing_schedules' => 0,
+                'total_employees'   => 0,
+                'residents'         => 0,
+                'error'             => $e->getMessage(),
+            ], 500);
+        }
     }
 }

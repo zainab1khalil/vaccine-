@@ -6,36 +6,38 @@ use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class EmployeeController extends Controller
 {
     // GET /api/employees?department_id=&search=&month=&year=
     public function index(Request $request): JsonResponse
     {
-        $query = Employee::with('department');
+        try {
+            $query = Employee::with('department');
 
-        if ($request->filled('department_id')) {
-            $query->where('department_id', $request->department_id);
+            if ($request->filled('department_id')) {
+                $query->where('department_id', $request->department_id);
+            }
+
+            if ($request->filled('search')) {
+                $s = $request->search;
+                $query->where(function ($q) use ($s) {
+                    $q->where('name', 'ilike', "%{$s}%")
+                      ->orWhere('employee_id', 'ilike', "%{$s}%");
+                });
+            }
+
+            if ($request->filled('classification')) {
+                $query->where('classification', $request->classification);
+            }
+
+            $employees = $query->orderBy('name')->get();
+
+            return response()->json($employees);
+        } catch (\Exception $e) {
+            return response()->json([], 500);
         }
-
-        if ($request->filled('search')) {
-            $s = $request->search;
-            $query->where(function ($q) use ($s) {
-                $q->where('name', 'ilike', "%{$s}%")
-                  ->orWhere('employee_id', 'ilike', "%{$s}%");
-            });
-        }
-
-        if ($request->filled('classification')) {
-            $query->where('classification', $request->classification);
-        }
-
-        $employees = $query->orderBy('name')->get();
-
-        return response()->json([
-            'data'  => $employees,
-            'count' => $employees->count(),
-        ]);
     }
 
     // GET /api/employees/{employeeId}

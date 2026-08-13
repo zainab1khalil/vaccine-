@@ -11,12 +11,11 @@ use App\Http\Controllers\API\ExceptionController;
 use App\Http\Controllers\API\ViolationController;
 use App\Http\Controllers\API\ReportController;
 use App\Http\Controllers\API\DutyCarryoverController;
+use App\Http\Controllers\API\CCTVViolationController;
+use App\Http\Controllers\API\GeneralManagerController;
+use App\Http\Controllers\API\DailyViolationController;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes — Al-Mujtaba HR System
-|--------------------------------------------------------------------------
-*/
+
 
 // ── DEPARTMENTS ──────────────────────────────────────────────────────────
 Route::get   ('departments',                    [DepartmentController::class, 'index']);
@@ -31,6 +30,8 @@ Route::post  ('departments/{id}/remind-all',    [DepartmentController::class, 's
 Route::post  ('schedules/upload',               [ScheduleController::class, 'upload']);
 Route::get   ('schedules/{depId}/{month}/{year}',[ScheduleController::class, 'getForDepartment']);
 Route::delete('schedules/{depId}/{month}/{year}',[ScheduleController::class, 'delete']);
+Route::get   ('monthly-schedules',              [ScheduleController::class, 'index']);
+Route::get   ('employee-schedules',             [ScheduleController::class, 'employeeSchedules']);
 
 // ── EMPLOYEES ─────────────────────────────────────────────────────────────
 Route::get   ('employees',                      [EmployeeController::class, 'index']);
@@ -48,6 +49,8 @@ Route::post  ('attendance/upload-leaves',       [AttendanceController::class, 'u
 Route::get   ('attendance/{employeeId}/{month}/{year}', [AttendanceController::class, 'getEmployeeAttendance']);
 // Department-wide attendance for a month
 Route::get   ('attendance/department/{depId}/{month}/{year}', [AttendanceController::class, 'getDepartmentAttendance']);
+// Daily position report (الموقف اليومي) with CCTV violations integration
+Route::get   ('attendance/daily-position/{date}', [AttendanceController::class, 'getDailyPositionReport']);
 
 // ── SHIFT EXCEPTIONS (Chemo / IV Mixing etc.) ────────────────────────────
 Route::get   ('exceptions',                     [ExceptionController::class, 'index']);
@@ -77,10 +80,13 @@ Route::get   ('violations',                     [ViolationController::class, 'in
 Route::get   ('violations/{employeeId}',        [ViolationController::class, 'getForEmployee']);
 Route::post  ('violations',                     [ViolationController::class, 'store']);
 Route::delete('violations/{id}',                [ViolationController::class, 'destroy']);
+Route::post  ('violations/{id}/notify',         [ViolationController::class, 'sendViolationNotification']);
+Route::post  ('violations/daily-notify',         [ViolationController::class, 'sendDailyViolations']);
 
 // ── DISCIPLINARY ACTIONS ──────────────────────────────────────────────────
 Route::get   ('disciplinary/{employeeId}',      [ViolationController::class, 'getDisciplinary']);
 Route::post  ('disciplinary',                   [ViolationController::class, 'storeDisciplinary']);
+Route::post  ('disciplinary/{id}/notify',      [ViolationController::class, 'sendDisciplinaryNotification']);
 
 // ── OVERTIME ──────────────────────────────────────────────────────────────
 Route::get   ('overtime/{employeeId}/{month}/{year}', [OvertimeController::class, 'calculate']);
@@ -111,3 +117,24 @@ Route::get   ('reports/employee/{employeeId}/{month}/{year}', [ReportController:
 Route::get   ('reports/department/{depId}/{month}/{year}',    [ReportController::class, 'departmentMonthly']);
 // Dashboard KPIs
 Route::get   ('reports/kpi/{month}/{year}',                   [ReportController::class, 'kpi']);
+
+// ── CCTV VIOLATIONS ────────────────────────────────────────────────────────
+Route::post  ('cctv-violations/upload',                       [CCTVViolationController::class, 'upload']);
+Route::get   ('cctv-violations',                              [CCTVViolationController::class, 'index']);
+Route::get   ('cctv-violations/{employeeId}',                  [CCTVViolationController::class, 'getForEmployee']);
+Route::get   ('cctv-violations/daily/{date}',                 [CCTVViolationController::class, 'getDailyViolations']);
+Route::put   ('cctv-violations/{id}',                         [CCTVViolationController::class, 'update']);
+Route::delete('cctv-violations/{id}',                         [CCTVViolationController::class, 'destroy']);
+Route::post  ('cctv-violations/{id}/convert-to-leave',        [CCTVViolationController::class, 'convertToUnpaidLeave']);
+
+// ── GENERAL MANAGER DASHBOARD ──────────────────────────────────────────────
+Route::get   ('gm/dashboard',                                  [GeneralManagerController::class, 'dashboard']);
+Route::get   ('gm/daily-violations',                           [GeneralManagerController::class, 'dailyViolations']);
+Route::get   ('gm/employee/{employeeId}',                      [GeneralManagerController::class, 'employeeDetails']);
+Route::get   ('gm/continuity-check/{employeeId}',              [GeneralManagerController::class, 'checkContinuity']);
+
+// ── DAILY VIOLATION REPORTS (Function 15) ──────────────────────────────
+Route::get   ('daily-violations/{date}',                       [DailyViolationController::class, 'getDailyViolations']);
+Route::post  ('daily-violations/{date}/notify',                [DailyViolationController::class, 'sendDailyNotifications']);
+Route::post  ('daily-violations/test-employee-2812',          [DailyViolationController::class, 'testEmployee2812']);
+Route::get   ('daily-violations/summary/{date}',              [DailyViolationController::class, 'getDailySummary']);

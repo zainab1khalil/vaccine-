@@ -19,38 +19,52 @@ class DepartmentController extends Controller
         $month = (int)($request->query('month', now()->month));
         $year  = (int)($request->query('year',  now()->year));
 
-        $deps = Department::with(['employees'])->get();
+        try {
+            $deps = Department::with(['employees'])->get();
 
-        // Which departments have uploaded their schedule this month?
-        $uploaded = MonthlySchedule::where('month', $month)
-            ->where('year', $year)
-            ->pluck('department_id')
-            ->toArray();
+            // Which departments have uploaded their schedule this month?
+            $uploaded = MonthlySchedule::where('month', $month)
+                ->where('year', $year)
+                ->pluck('department_id')
+                ->toArray();
 
-        $result = $deps->map(function ($dep) use ($uploaded, $month, $year) {
-            return [
-                'id'             => $dep->id,
-                'name'           => $dep->name,
-                'chairman_name'  => $dep->chairman_name,
-                'chairman_email' => $dep->chairman_email,
-                'employee_count' => $dep->employees->count(),
-                'schedule_uploaded' => in_array($dep->id, $uploaded),
-                'upload_date'    => MonthlySchedule::where('department_id', $dep->id)
-                    ->where('month', $month)->where('year', $year)
-                    ->value('created_at'),
-            ];
-        });
+            $result = $deps->map(function ($dep) use ($uploaded, $month, $year) {
+                return [
+                    'id'             => $dep->id,
+                    'name'           => $dep->name,
+                    'chairman_name'  => $dep->chairman_name,
+                    'chairman_email' => $dep->chairman_email,
+                    'employee_count' => $dep->employees->count(),
+                    'schedule_uploaded' => in_array($dep->id, $uploaded),
+                    'upload_date'    => MonthlySchedule::where('department_id', $dep->id)
+                        ->where('month', $month)->where('year', $year)
+                        ->value('created_at'),
+                ];
+            });
 
-        return response()->json([
-            'data'  => $result,
-            'month' => $month,
-            'year'  => $year,
-            'stats' => [
-                'total'    => $deps->count(),
-                'uploaded' => count($uploaded),
-                'missing'  => $deps->count() - count($uploaded),
-            ],
-        ]);
+            return response()->json([
+                'data'  => $result,
+                'month' => $month,
+                'year'  => $year,
+                'stats' => [
+                    'total'    => $deps->count(),
+                    'uploaded' => count($uploaded),
+                    'missing'  => $deps->count() - count($uploaded),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'data'  => [],
+                'month' => $month,
+                'year'  => $year,
+                'stats' => [
+                    'total'    => 0,
+                    'uploaded' => 0,
+                    'missing'  => 0,
+                ],
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     // GET /api/departments/{id}?month=&year=
